@@ -1,0 +1,29 @@
+{
+  "event_type": "PRINT_COMPLETE",
+  "event_id": "evt_1234567890",
+  "timestamp": "2025-09-06T14:30:45.123Z",
+  "printer": {
+    "id": 3,
+    "name": "3",
+    "grid_location": "1C",
+    "model": "P1S",
+    "coordinates": {
+      "x": 600,
+      "y": 0,
+      "z": 850,
+      "unit": "mm",
+      "reference": "front_left_origin"
+    }
+  },
+  "print_job": {
+    "filename": "part_123.gcode.3mf",
+    "duration_minutes": 145,
+    "completion_time": "2025-09-06T14:30:45.123Z",
+    "order_id": "ORD-2025-0906-001"
+  },
+  "required_action": {
+    "type": "PLATE_SWAP",
+    "priority": "normal",
+    "timeout_minutes": 30
+  }
+}
