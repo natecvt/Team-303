@@ -1,4 +1,7 @@
 import json
+import os # For accessing environment variables, such as USER
+
+
 array = ["PRINT_COMPLETE", "ERROR"]
 
 def print_event(dct):
@@ -17,11 +20,10 @@ def printer_status(current_status):
     
 
 def main():
-    with open('/home/kenne/Team-303/python/src/msg.json', 'r') as file:
+    with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
         status = json.load(file, object_hook=print_event)
 
     printer_status(status)
 
 if __name__ == "__main__":
-
     main()
