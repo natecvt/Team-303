@@ -1,13 +1,26 @@
 import json
 import os # For accessing environment variables, such as USER
+import datetime
+from datetime import datetime
 
 
 array = ["PRINT_COMPLETE", "ERROR"]
 
-def print_event(dct):
-    if 'event_type' in dct:
-        return str(dct['event_type'])
-    return dct
+def print_event(status):
+    if 'event_type' in status:
+        event_type = status['event_type']
+        return event_type
+    else:
+        return "Error: event_type not found"
+
+def printer_number(status):
+    if 'event_type' in status:
+        printer_id = status['printer']['id']
+        print(f"Printer {printer_id}")
+        return printer_id
+    else:
+        return "Error: not a valid event"
+
 
 def printer_status(current_status):
     if current_status == "PRINT_COMPLETE":
@@ -20,10 +33,21 @@ def printer_status(current_status):
     
 
 def main():
-    with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
-        status = json.load(file, object_hook=print_event)
-
-    printer_status(status)
+        with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
+            if file.readable():
+                status = json.load(file)
+                print("File read successfully")
+            else:
+                print("Error: File not readable")
+                log = json.dumps(status, indent=4)
+                current_time = datetime.now().strftime("%Y%m%d_%H%M")
+                with open(f'log{current_time}.txt', 'w') as log_file:
+                    log_file.write(log)
+                return  
+        
+        print_id = printer_number(status)
+        event_status = print_event(status)
+        printer_status(event_status)
 
 if __name__ == "__main__":
     main()
