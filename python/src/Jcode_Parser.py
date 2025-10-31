@@ -1,5 +1,11 @@
 import json
+<<<<<<< HEAD
 from datetime import datetime
+=======
+import os # For accessing environment variables, such as USER
+
+
+>>>>>>> 3813ca9628b34c40e758f308d6f158657f4b6c0b
 array = ["PRINT_COMPLETE", "ERROR"]
 
 def print_event(status):
@@ -29,6 +35,7 @@ def printer_status(current_status):
     
 
 def main():
+<<<<<<< HEAD
     with open('/home/kenne/Team-303/python/src/msg.json', 'r') as file:
         if file.readable():
             status = json.load(file)
@@ -43,7 +50,12 @@ def main():
     print_id = printer_number(status)
     event_status = print_event(status)
     printer_status(event_status)
+=======
+    with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
+        status = json.load(file, object_hook=print_event)
+
+    printer_status(status)
+>>>>>>> 3813ca9628b34c40e758f308d6f158657f4b6c0b
 
 if __name__ == "__main__":
-
     main()
