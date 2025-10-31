@@ -68,13 +68,9 @@ def generate_code(command_args, command_type, is_gcode = True):
 
     return code
 
-
-
-
-
 def main():
     c1_args = {'x': 10.0, 'z': 5.4}
-    print(generate_code(c1_args, 0, True))
+    print(generate_code(c1_args, 0))
     c2_args = {'x': 10.0, 'y': 23.4}
     print(generate_code(c2_args, 1, True))
     c3_args = {}
