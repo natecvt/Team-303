@@ -41,6 +41,10 @@ def main():
     print(f"G-code to move to printer {printer_num} generated.")
     print(code)
 
+    code = gcode_move_to_home()
+    print("G-code to move to home position generated.")
+    print(code)
+
 if __name__ == "__main__":
     print("Testing printer coordinate retrieval:")
     main()
