@@ -28,6 +28,27 @@ def gcode_move_to_home(feed_rate=1500):
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
+def gcode_grab_plate(z_dist, feed_rate=1500):
+    code = ""
+    code += gcode_gen.generate_code({'z': z_dist, 'f': feed_rate}, 1, True)
+    # add grab plate g/mcode commands here
+    code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
+    # add fold up commands here
+    code += gcode_gen.generate_code({}, 1, False)
+    return code
+
+def gcode_release_plate(z_dist, feed_rate=1500):
+    code = ""
+    code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
+    code += gcode_gen.generate_code({'z': z_dist, 'f': feed_rate}, 1, True)
+    # add fold down commands here
+    # add release plate g/mcode commands here
+    code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
+    code += gcode_gen.generate_code({}, 1, False)
+    return code
+
+
+
 def main():
     path = f'{getenv("HOME")}/Team-303/ref_files/printer_centers.csv'
     printer_num = int(input("Enter printer number: "))
@@ -39,6 +60,10 @@ def main():
 
     code = gcode_move_to_printer(printer_num)
     print(f"G-code to move to printer {printer_num} generated.")
+    print(code)
+
+    code = gcode_move_to_home()
+    print("G-code to move to home position generated.")
     print(code)
 
 if __name__ == "__main__":
