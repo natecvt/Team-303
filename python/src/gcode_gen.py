@@ -31,11 +31,16 @@ mcode_template = {
     3 : ["M03 Ss $$\n", (1, 2)], # spindle on clockwise
     4 : ["M04 Ss $$\n", (1, 2)], # spindle on counterclockwise
     5 : ["M05 $$\n", (1)], # spindle stop
+
     61 : ["M61 Qq\n", (1)], # tool change with tool number Q
     66 : ["M66 Pp Ll Qq\n", (2, 3)], # wait for input
+
+    100 : ["M100 Pp Qq Rr\n", (1, 2, 3)], # user-defined actuator command placeholder
+    101 : ["M101 Pp Qq Rr\n", (1, 2, 3)], # user-defined actuator command placeholder
 }
 mcode_template = MappingProxyType(mcode_template) # make immutable
 
+# G-code / M-code generation function
 def generate_code(command_args, command_type, is_gcode = True):
     if is_gcode:
         template_dict = gcode_template
