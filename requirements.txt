@@ -1,0 +1,9 @@
+poetry
+ruff
+black
+mypy
+pre-commit
+
+paho-mqtt
+
+-r apriltag_python/requirements.txt
