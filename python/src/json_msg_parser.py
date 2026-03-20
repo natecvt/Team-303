@@ -6,14 +6,14 @@ from datetime import datetime
 
 array = ["PRINT_COMPLETE", "ERROR"]
 
-def print_event(status):
+def print_event(status) -> str:
     if 'event_type' in status:
         event_type = status['event_type']
         return event_type
     else:
         return "Error: event_type not found"
 
-def printer_number(status):
+def printer_number(status) -> str|int:
     if 'event_type' in status:
         printer_id = status['printer']['id']
         print(f"Printer {printer_id}")

@@ -41,7 +41,7 @@ mcode_template = {
 mcode_template = MappingProxyType(mcode_template) # make immutable
 
 # G-code / M-code generation function
-def generate_code(command_args, command_type, is_gcode = True):
+def generate_code(command_args: dict, command_type: int, is_gcode = True) -> MappingProxyType[int, list]:
     if is_gcode:
         template_dict = gcode_template
     else:
