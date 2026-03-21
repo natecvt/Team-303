@@ -76,7 +76,7 @@ loadrt charge_pump
 #loadrt hal_pi_gpio dir=58717087 exclude=0 
 loadrt hal_gpio inputs=GPIO25,GPIO7,GPIO12,GPIO13,GPIO8 pullup=GPIO25,GPIO7,GPIO12,GPIO13,GPIO8 outputs=GPIO18,GPIO26,GPIO9,GPIO10,GPIO11,GPIO5,GPIO6,GPIO19,GPIO17,GPIO23,GPIO27,GPIO24 
 
-loadrt stepgen step_type=0,0,0,0
+loadrt stepgen step_type=0,0,0,0,0
 
 addf stepgen.make-pulses base-thread
 loadrt sum2 count=1
@@ -198,10 +198,10 @@ net bdir	=> hal_gpio.GPIO24-out
 ##############################################
 #				Limit Inputs
 ##############################################
-net min-home-x	<= hal_gpio.GPIO7-in
-net min-home-y	<= hal_gpio.GPIO12-in
-net min-home-z	<= hal_gpio.GPIO13-in
-net all-limit   <= hal_gpio.GPIO8-in
+net min-home-x	<= hal_gpio.GPIO7-in-not
+net min-home-y	<= hal_gpio.GPIO12-in-not
+net min-home-z	<= hal_gpio.GPIO13-in-not
+net all-limit   <= hal_gpio.GPIO8-in-not
 #pin 22 (GPIO25) is the eSTOP
 
 #net X-home hal_pi_gpio.pin-22-in => axis.0.home-sw-in axis.0.neg-lim-sw-in
@@ -291,8 +291,8 @@ setp stepgen.4.stepspace 0
 setp stepgen.4.dirhold 60000
 setp stepgen.4.dirsetup 60000
 setp stepgen.4.maxaccel [JOINT_4]STEPGEN_MAXACCEL
-net apos-cmd joint.4.motor-pos-cmd => stepgen.4.position-cmd
-net apos-fb stepgen.4.position-fb => joint.4.motor-pos-fb
+net bpos-cmd joint.4.motor-pos-cmd => stepgen.4.position-cmd
+net bpos-fb stepgen.4.position-fb => joint.4.motor-pos-fb
 net bstep <= stepgen.4.step
 net bdir <= stepgen.4.dir
 net benable joint.4.amp-enable-out => stepgen.4.enable
