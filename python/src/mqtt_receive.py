@@ -1,4 +1,12 @@
 import paho.mqtt.client as mqtt
+import json_msg_parser as jmp
+from pathlib import Path
+
+try: 
+    path = Path("/home/natec/Team-303/jobs")
+except: 
+    print("Path not found")
+    exit(1)
 
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
@@ -9,6 +17,15 @@ def on_connect(client, userdata, flags, rc, properties):
 
 def on_message(client, userdata, msg):
     print(msg.topic+":\n\n"+str(msg.payload))
+
+    jobscount = sum(1 for entry in path.iterdir() if entry.is_file())
+    with open(f"jobs/{jobscount}.json", "xt") as newjob:
+        jmp.write_str_as_json(newjob, str(msg.payload))
+
+    # status = main_loop(msg.payload) # main loop function for the system
+
+    
+
 
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
