@@ -39,7 +39,6 @@ def write_str_as_json(file, contents: str):
 
 
 
-
 def main():
         with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
             if file.readable():

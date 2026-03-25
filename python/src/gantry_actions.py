@@ -2,7 +2,7 @@ from os import getenv
 import yaml
 import gcode_gen
 
-def read_printer_coords(path: str, printer_number: int):
+def read_printer_coords(path: str, printer_number: int) -> dict:
     if not isinstance(printer_number, int) or printer_number < 1 or printer_number > 12:
         raise ValueError("Invalid printer number")
     
@@ -13,7 +13,7 @@ def read_printer_coords(path: str, printer_number: int):
         
         return {"x": float(coords[0]), "y": float(coords[1])}
 
-def gcode_move_to_printer(printer_number: int, feed_rate=1500):
+def gcode_move_to_printer(printer_number: int, feed_rate=1500) -> str:
     coords = read_printer_coords(f'{getenv("HOME")}/Team-303/ref_files/printer_centers.csv', printer_number)
     code = ""
 
@@ -22,14 +22,14 @@ def gcode_move_to_printer(printer_number: int, feed_rate=1500):
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_move_to_home(feed_rate=1500):
+def gcode_move_to_home(feed_rate=1500) -> str:
     code = ""
     code += gcode_gen.generate_code({'x': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'y': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_grab_plate(z_dist: float, feed_rate=1500):
+def gcode_grab_plate(z_dist: float, feed_rate=1500) -> str:
     code = ""
     code += gcode_gen.generate_code({'z': z_dist, 'f': feed_rate}, 1, True)
     # add grab plate g/mcode commands here
@@ -38,7 +38,7 @@ def gcode_grab_plate(z_dist: float, feed_rate=1500):
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_release_plate(z_dist: float, feed_rate=1500):
+def gcode_release_plate(z_dist: float, feed_rate=1500) -> str:
     code = ""
     code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'z': z_dist, 'f': feed_rate}, 1, True)
@@ -47,7 +47,6 @@ def gcode_release_plate(z_dist: float, feed_rate=1500):
     code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({}, 1, False)
     return code
-
 
 
 def main():
