@@ -10,23 +10,26 @@ except:
     sys.exit(1)
 
 LCNC_PATH: str = config.get_param("linuxcnc_folder")
-LCNC_HOME_TIMEOUT: int = config.get_param("linuxcnc_homing_timeout")
+LCNC_MOTION_TIMEOUT: int = config.get_param("linuxcnc_timeout")
 
-s: linuxcnc.stat
-c: linuxcnc.command
+s: linuxcnc.stat = None
+c: linuxcnc.command = None
 
-def create_s_and_c():
+def open_linuxcnc() -> subprocess.Popen | None:
     s = linuxcnc.stat()
     c = linuxcnc.command()
 
-def open_linuxcnc() -> subprocess.Popen | None:
+    if (s == None or c == None):
+        print("Stat and Command channels not initialized")
+        return None
+
     lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
 
     time.sleep(10.0) # sleep for a minute to give linuxcnc ample time to start
 
     try:
         s.poll() # get current values
-    except (linuxcnc.error, detai):
+    except (linuxcnc.error, detail):
         print("error", detail)
         return None
 
@@ -38,6 +41,10 @@ def open_linuxcnc() -> subprocess.Popen | None:
     return lcnc_process
 
 def home_all_axes() -> bool:
+    if (s == None or c == None):
+        print("Stat and Command channels not initialized")
+        return False
+
     s.poll()
 
     if (s.estop):
@@ -59,7 +66,8 @@ def home_all_axes() -> bool:
 
     print("Homing...")
     c.home(-1) # home all axes by INI configuration
-    if (c.wait_complete(LCNC_HOME_TIMEOUT) == -1):
+    rc = c.wait_complete(LCNC_MOTION_TIMEOUT)
+    if (rc == -1 or rc == linuxcnc.RCS_ERROR):
         print("Homing timed out in 2 minutes")
 
         #TODO: check stat for more specific errors
@@ -74,9 +82,60 @@ def home_all_axes() -> bool:
     
     return True
 
-def ok_for_mdi():
+def ok_for_mdi() -> bool:
+    s.poll()
     return not s.estop and s.enabled and (s.homed.count(1) == s.joints) and (s.interp_state == linuxcnc.INTERP_IDLE)
 
-if (ok_for_mdi()):
-	print("Entered MDI-Safe Mode")
-	sys.exit(0)
+def handle_not_ok() -> bool:
+    s.poll()
+
+    if (s.estop):
+        print("EStop triggered, waiting until further action")
+        while True:
+            if not s.estop:
+                break
+            s.poll()
+            time.sleep(1.0)
+
+        print("EStop unpressed, returning to regular operation")
+    
+    if (not s.enabled):
+        print("Trajectory planner disabled, ")
+
+        #TODO: handle this error
+
+    if (not (s.interp_state == linuxcnc.INTERP_IDLE) or not (s.interp_state == linuxcnc.INTERP_WAITING)):
+        print("Interpreter in odd state for no motion, checking further")
+        if (s.interpreter_errcode == linuxcnc.INTERP_ERROR):
+            print("Interpreter in err state, handling")
+
+            #TODO: handle this error
+
+    return True
+
+
+def send_mdi_line(code: str) -> bool:
+    if ok_for_mdi(): # polls inside function
+
+        #TODO: detect whether move would exceed axes
+        c.mdi(code) # send mdi commands
+        c.wait_complete(LCNC_MOTION_TIMEOUT)
+
+    else:
+        return False
+    
+    if handle_not_ok():
+        return True
+    
+    print("Unhandled error caught")
+    return False
+
+
+def main():
+
+    
+
+    pass
+
+if __name__ == "__main__":
+    main()
