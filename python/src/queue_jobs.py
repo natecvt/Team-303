@@ -32,7 +32,8 @@ def main():
     mt = create_message_thread()
     lt = create_main_loop_thread(test_loop)
 
-    start_threads([mt, lt])
+    if not (mt == None or lt == None):
+        start_threads([mt, lt])
 
 if __name__ == "__main__":
     main()

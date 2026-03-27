@@ -10,75 +10,72 @@ except:
     sys.exit(1)
 
 LCNC_PATH: str = config.get_param("linuxcnc_folder")
-LCNC_MOTION_TIMEOUT: int = config.get_param("linuxcnc_timeout")
+LCNC_MOTION_TIMEOUT: float = config.get_param("linuxcnc_timeout")
 
-s: linuxcnc.stat = None
-c: linuxcnc.command = None
+lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
+time.sleep(30.0) # sleep for a minute to give linuxcnc ample time to start
 
-def open_linuxcnc() -> subprocess.Popen | None:
-    s = linuxcnc.stat()
-    c = linuxcnc.command()
+
+s = linuxcnc.stat()
+c = linuxcnc.command()
+
+c.teleop_enable(False)
+s.poll()
+
+ini = linuxcnc.ini(s.ini_filename)
+
+def open_linuxcnc() -> bool:
 
     if (s == None or c == None):
-        print("Stat and Command channels not initialized")
-        return None
-
-    lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
-
-    time.sleep(10.0) # sleep for a minute to give linuxcnc ample time to start
+        print("Stat or Command channels not initialized")
+        return False
 
     try:
         s.poll() # get current values
-    except (linuxcnc.error, detail):
-        print("error", detail)
-        return None
+    except linuxcnc.error:
+        print("error", linuxcnc.error)
+        return False
 
     for x in dir(s):
         if not x.startswith("_"):
             print("LinucCNC Status: \n\n")
             print(x, getattr(s,x))
 
-    return lcnc_process
+    return True
 
 def home_all_axes() -> bool:
     if (s == None or c == None):
-        print("Stat and Command channels not initialized")
+        print("Stat or Command channels not initialized")
         return False
 
     s.poll()
-
-    if (s.estop):
-        print("EStop released, starting machine...")
-    else:
-        print("Releasing EStop...")
-        c.state(linuxcnc.STATE_ESTOP_RESET)
-        c.wait_complete()
+    print("Releasing EStop")
+    c.state(linuxcnc.STATE_ESTOP_RESET)
+    c.wait_complete()
 
     s.poll()
+    print("Turning machine power on...")
+    c.state(linuxcnc.STATE_ON)
+    c.wait_complete()
 
-    if not s.machine_is_on:
-        print("Turning machine power on...")
-        c.state(linuxcnc.STATE_ON)
-        c.wait_complete()
-        s.poll()
-    else:
-        print("Machine is already powered on. Proceeding...")
-
+    s.poll()
     print("Homing...")
     c.home(-1) # home all axes by INI configuration
-    rc = c.wait_complete(LCNC_MOTION_TIMEOUT)
-    if (rc == -1 or rc == linuxcnc.RCS_ERROR):
-        print("Homing timed out in 2 minutes")
+
+    count = 0
+    while not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count())) and count < LCNC_MOTION_TIMEOUT * 10:
+        s.poll()
+        time.sleep(0.1)
+        count += 1
+
+    if (count >= LCNC_MOTION_TIMEOUT * 10):
+        print(f"Homing timed out in {LCNC_MOTION_TIMEOUT/60} minutes")
 
         #TODO: check stat for more specific errors
 
         return False
 
-    s.poll()
-    if all(s.joint[i]['homed'] for i in range(s.axes)):
-        print("All axes successfully homed")
-    else:
-        print("Homing sequence complete, but some axes might not be homed. Check INI configuration")
+    print("All axes successfully homed")
     
     return True
 
@@ -104,7 +101,7 @@ def handle_not_ok() -> bool:
 
         #TODO: handle this error
 
-    if (not (s.interp_state == linuxcnc.INTERP_IDLE) or not (s.interp_state == linuxcnc.INTERP_WAITING)):
+    if (not (s.interp_state == linuxcnc.INTERP_IDLE) and not (s.interp_state == linuxcnc.INTERP_WAITING)):
         print("Interpreter in odd state for no motion, checking further")
         if (s.interpreter_errcode == linuxcnc.INTERP_ERROR):
             print("Interpreter in err state, handling")
@@ -116,10 +113,14 @@ def handle_not_ok() -> bool:
 
 def send_mdi_line(code: str) -> bool:
     if ok_for_mdi(): # polls inside function
-
+        c.mode(linuxcnc.MODE_MDI)
+        c.wait_complete()
         #TODO: detect whether move would exceed axes
         c.mdi(code) # send mdi commands
-        c.wait_complete(LCNC_MOTION_TIMEOUT)
+        rc = c.wait_complete(LCNC_MOTION_TIMEOUT)
+        if (rc == -1 or rc == linuxcnc.RCS_ERROR):
+            print("MDI code failed")
+            return False
 
     else:
         return False
@@ -132,10 +133,13 @@ def send_mdi_line(code: str) -> bool:
 
 
 def main():
-
+    if (not open_linuxcnc()):
+        print("Linuxcnc failed to initialize properly")
+        exit(1)
     
-
-    pass
+    if (home_all_axes()):
+        send_mdi_line("G01 X100 Y100 F1500")
+        print("Sample MDI sucessful")
 
 if __name__ == "__main__":
     main()
