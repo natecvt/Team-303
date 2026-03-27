@@ -5,34 +5,34 @@ gcode_template = {
     1 : ["G01 Xx Yy Zz Aa Ff\n", (1, 2, 3, 4, 5)], # fed move
     2 : ["G02 Xx Yy Zz Rr\n", (2, 3)], # clockwise arc
     3 : ["G03 Xx Yy Zz Rr\n", (2, 3)], # counterclockwise arc
-    4 : ["G04 Pp\n", (1)], # dwell
+    4 : ["G04 Pp\n", (1,)], # dwell
 
-    20 : ["G20\n", (0)], # set units to inches
-    21 : ["G21\n", (0)], # set units to mm
+    20 : ["G20\n", (0,)], # set units to inches
+    21 : ["G21\n", (0,)], # set units to mm
 
     54 : ["G54 Xx Yy Zz\n", (1, 2, 3)], # work coordinate system 1
 
-    61 : ["G61\n", (0)], # exact stop check
-    61.1 : ["G61.1\n", (0)], # continuous path mode
+    61 : ["G61\n", (0,)], # exact stop check
+    61.1 : ["G61.1\n", (0,)], # continuous path mode
 
-    90 : ["G90\n", (0)], # absolute programming
-    91 : ["G91\n", (0)], # incremental programming
+    90 : ["G90\n", (0,)], # absolute programming
+    91 : ["G91\n", (0,)], # incremental programming
     92 : ["G92 Xx Yy Zz\n", (1, 2, 3)], # set position
-    93 : ["G93\n", (0)], # inverse time feed rate
-    94 : ["G94\n", (0)], # units per minute feed rate
-    95 : ["G95\n", (0)], # units per revolution feed rate
+    93 : ["G93\n", (0,)], # inverse time feed rate
+    94 : ["G94\n", (0,)], # units per minute feed rate
+    95 : ["G95\n", (0,)], # units per revolution feed rate
 }
 gcode_template = MappingProxyType(gcode_template) # make immutable
 
 mcode_template = {
-    0 : ["M00\n", (0)], # pause
-    1 : ["M01\n", (0)], # optional pause
-    2 : ["M02\n", (0)], # end of program
-    3 : ["M03 Ss\n", (1)], # spindle on clockwise
-    4 : ["M04 Ss\n", (1)], # spindle on counterclockwise
-    5 : ["M05\n", (0)], # spindle stop
+    0 : ["M00\n", (0,)], # pause
+    1 : ["M01\n", (0,)], # optional pause
+    2 : ["M02\n", (0,)], # end of program
+    3 : ["M03 Ss\n", (1,)], # spindle on clockwise
+    4 : ["M04 Ss\n", (1,)], # spindle on counterclockwise
+    5 : ["M05\n", (0,)], # spindle stop
 
-    61 : ["M61 Qq\n", (1)], # tool change with tool number Q
+    61 : ["M61 Qq\n", (1,)], # tool change with tool number Q
     66 : ["M66 Pp Ll Qq\n", (2, 3)], # wait for input
 
     100 : ["M100 Pp Qq Rr\n", (1, 2, 3)], # user-defined actuator command placeholder
@@ -57,7 +57,8 @@ def generate_code(command_args: dict, command_type: int, is_gcode = True) -> Map
         return template_dict[command_type][0]
 
     template = str(template_dict[command_type][0])
-    possible_nargs = tuple(template_dict[command_type][1])
+    print(template_dict[command_type][1])
+    possible_nargs = (template_dict[command_type][1])
     nargs = len(command_args)
 
     if possible_nargs.count(nargs) == 0:
