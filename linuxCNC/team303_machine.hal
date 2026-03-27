@@ -74,7 +74,7 @@ loadrt charge_pump
 
 
 #loadrt hal_pi_gpio dir=58717087 exclude=0 
-loadrt hal_gpio inputs=GPIO25,GPIO7,GPIO12,GPIO13,GPIO8 pullup=GPIO25,GPIO7,GPIO12,GPIO13,GPIO8 outputs=GPIO18,GPIO26,GPIO9,GPIO10,GPIO11,GPIO5,GPIO6,GPIO19,GPIO17,GPIO23,GPIO27,GPIO24 
+loadrt hal_gpio inputs=GPIO25,GPIO7,GPIO12,GPIO13,GPIO8 pullup=GPIO25,GPIO7,GPIO12,GPIO13,GPIO8,GPIO18 outputs=GPIO18,GPIO26,GPIO9,GPIO10,GPIO11,GPIO5,GPIO6,GPIO19,GPIO17,GPIO23,GPIO27,GPIO24 
 
 loadrt stepgen step_type=0,0,0,0,0
 
@@ -111,15 +111,26 @@ addf hal_gpio.write base-thread
 #net spindle-enable spindle.0.on => hal_gpio.GPIO18-out
 
 ###### PWM (tested)
-loadrt pwmgen output_type=0
+loadrt pwmgen output_type=1
 addf pwmgen.update servo-thread
 addf pwmgen.make-pulses base-thread
-net spindle-speed-cmd spindle.0.speed-out => pwmgen.0.value
-net spindle-on spindle.0.on => pwmgen.0.enable  
-net spindle-pwm pwmgen.0.pwm => hal_gpio.GPIO18-out
-# set the spindles top speed in RPM. used to equate % output to RPM
-setp pwmgen.0.scale 1000
 
+setp pwmgen.0.pwm-freq 50        # 50 Hz (20 ms period)
+setp pwmgen.0.scale 1.0          # value is in seconds (pulse width)
+
+setp pwmgen.0.enable true
+
+loadrt scale count=1
+addf scale.0 servo-thread
+
+setp scale.0.gain 0.001          # S1000 → 1.0
+setp scale.0.offset 0.0005        # shift to 1–2 ms range
+
+net spindle-speed spindle.0.speed-out => scale.0.in
+net servo-pulse scale.0.out => pwmgen.0.value
+
+# --- Output to your working PWM pin ---
+net servo-output pwmgen.0.pwm => hal_gpio.GPIO18-out
 
 
 #net spindle-pwm pwmgen.0.pwm 	=> hal_pi_gpio.pin-12-out
@@ -178,10 +189,10 @@ net ystep	=> hal_gpio.GPIO11-out
 net ydir	=> hal_gpio.GPIO5-out
 net zstep	=> hal_gpio.GPIO6-out
 net zdir	=> hal_gpio.GPIO19-out
-net astep	=> hal_gpio.GPIO17-out
-net adir	=> hal_gpio.GPIO23-out
-net bstep	=> hal_gpio.GPIO27-out 
-net bdir	=> hal_gpio.GPIO24-out
+net ustep	=> hal_gpio.GPIO17-out
+net udir	=> hal_gpio.GPIO23-out
+net vstep	=> hal_gpio.GPIO27-out 
+net vdir	=> hal_gpio.GPIO24-out
 
 
 
@@ -198,9 +209,9 @@ net bdir	=> hal_gpio.GPIO24-out
 ##############################################
 #				Limit Inputs
 ##############################################
-net min-home-x	<= hal_gpio.GPIO7-in-not
-net min-home-y	<= hal_gpio.GPIO12-in-not
-net min-home-z	<= hal_gpio.GPIO13-in-not
+net min-home-x	<= hal_gpio.GPIO7-in
+net min-home-y	<= hal_gpio.GPIO12-in
+net min-home-z	<= hal_gpio.GPIO13-in
 net all-limit   <= hal_gpio.GPIO8-in-not
 #pin 22 (GPIO25) is the eSTOP
 
@@ -267,36 +278,36 @@ net min-home-z => joint.2.home-sw-in
 net all-limit => joint.2.neg-lim-sw-in
 net all-limit => joint.2.pos-lim-sw-in
 
-# A AXIS
+# U AXIS
 setp stepgen.3.position-scale [JOINT_3]SCALE
 setp stepgen.3.steplen 1
 setp stepgen.3.stepspace 0
 setp stepgen.3.dirhold 60000
 setp stepgen.3.dirsetup 60000
 setp stepgen.3.maxaccel [JOINT_3]STEPGEN_MAXACCEL
-net apos-cmd joint.3.motor-pos-cmd => stepgen.3.position-cmd
-net apos-fb stepgen.3.position-fb => joint.3.motor-pos-fb
-net astep <= stepgen.3.step
-net adir <= stepgen.3.dir
-net aenable joint.3.amp-enable-out => stepgen.3.enable
-net min-home-a => joint.3.home-sw-in
+net upos-cmd joint.3.motor-pos-cmd => stepgen.3.position-cmd
+net upos-fb stepgen.3.position-fb => joint.3.motor-pos-fb
+net ustep <= stepgen.3.step
+net udir <= stepgen.3.dir
+net uenable joint.3.amp-enable-out => stepgen.3.enable
+net min-home-u => joint.3.home-sw-in
 
 net all-limit => joint.3.neg-lim-sw-in
 net all-limit => joint.3.pos-lim-sw-in
 
-# B AXIS
+# V AXIS
 setp stepgen.4.position-scale [JOINT_4]SCALE
 setp stepgen.4.steplen 1
 setp stepgen.4.stepspace 0
 setp stepgen.4.dirhold 60000
 setp stepgen.4.dirsetup 60000
 setp stepgen.4.maxaccel [JOINT_4]STEPGEN_MAXACCEL
-net bpos-cmd joint.4.motor-pos-cmd => stepgen.4.position-cmd
-net bpos-fb stepgen.4.position-fb => joint.4.motor-pos-fb
-net bstep <= stepgen.4.step
-net bdir <= stepgen.4.dir
-net benable joint.4.amp-enable-out => stepgen.4.enable
-net min-home-b => joint.4.home-sw-in
+net vpos-cmd joint.4.motor-pos-cmd => stepgen.4.position-cmd
+net vpos-fb stepgen.4.position-fb => joint.4.motor-pos-fb
+net vstep <= stepgen.4.step
+net vdir <= stepgen.4.dir
+net venable joint.4.amp-enable-out => stepgen.4.enable
+net min-home-v => joint.4.home-sw-in
 
 net all-limit => joint.4.neg-lim-sw-in
 net all-limit => joint.4.pos-lim-sw-in
