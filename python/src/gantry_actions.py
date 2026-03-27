@@ -1,6 +1,45 @@
 from os import getenv
 import yaml
 import gcode_gen
+from statemachine import StateMachine, State
+
+class manipulatorsm(StateMachine):
+    # Define states
+    Empty = State(initial=True)
+    Full = State()
+    Clean = State()
+    grab = Empty.to(Full)
+    release = Full.to(Empty)
+    clean = Empty.to(Clean) | Clean.to(Empty)
+
+class positionsm(StateMachine):
+    # Define states
+    Home = State(initial=True)
+    Printer = State()
+    DirtyS = State() 
+    CleanS = State() 
+
+    go_printer = Home.to(Printer) | CleanS.to(Printer)
+    go_home = Printer.to(Home) | DirtyS.to(Home) | CleanS.to(Home)
+    go_dirty = Printer.to(DirtyS)
+    go_clean = DirtyS.to(CleanS)
+
+manipulator = manipulatorsm()
+position = positionsm()
+
+def require_position(*allowed_states):
+    if position.current_state not in allowed_states:
+        allowed = [s.id for s in allowed_states]
+        raise RuntimeError(
+            f"Position must be {allowed} but is '{position.current_state.id}'"
+        )
+
+def require_manipulator(*allowed_states):
+    if manipulator.current_state not in allowed_states:
+        allowed = [s.id for s in allowed_states]
+        raise RuntimeError(
+            f"Manipulator must be {allowed} but is '{manipulator.current_state.id}'"
+        )
 
 
 # Open the YAML file in read mode
@@ -19,22 +58,29 @@ def read_printer_coords(path: str, printer_number: int) -> dict:
         return {"x": float(coords[0]), "y": float(coords[1])}
 
 def gcode_move_to_printer(printer_number: int, feed_rate=1500) -> str:
+    require_position(position.Home, position.CleanS)
+    require_manipulator(manipulator.Empty, manipulator.Clean)
     coords = read_printer_coords(f'{getenv("HOME")}/Team-303/ref_files/printer_centers.csv', printer_number)
     code = ""
 
     code += gcode_gen.generate_code({'x': coords['x'], 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'y': coords['y']}, 1, True)
     code += gcode_gen.generate_code({}, 1, False)
+    position.go_printer()
     return code
 
-def gcode_move_to_home(feed_rate=1500) -> str:
+def gcode_move_to_home(feed_rate=1500) ->str:
+    require_position(position.Printer, position.DirtyS, position.CleanS)
     code = ""
     code += gcode_gen.generate_code({'x': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'y': 0.0}, 1, True)
     code += gcode_gen.generate_code({}, 1, False)
+    position.go_home()
     return code
 
-def gcode_move_to_clean(feed_rate=1500) -> str|None:
+def gcode_grab_plate(z_dist: float, feed_rate=1500) -> str:
+    require_manipulator(manipulator.Empty)
+    require_position(position.Printer)
     code = ""
     code += gcode_gen.generate_code({'x': config['clean_x'], 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'y': config['clean_y']}, 1, True)
@@ -52,9 +98,12 @@ def gcode_grab_plate(z_dist: float, feed_rate=1500) -> str:
     code += gcode_gen.generate_code({'s': config['angle_90']}, 3, False)
     # add fold up commands here
     code += gcode_gen.generate_code({}, 1, False)
+    manipulator.grab()
     return code
 
 def gcode_release_plate(z_dist: float, feed_rate=1500) -> str:
+    require_manipulator(manipulator.Full)
+    require_position(position.Printer, position.DirtyS, position.CleanS)
     code = ""
     code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'z': z_dist}, 1, True)
@@ -64,6 +113,7 @@ def gcode_release_plate(z_dist: float, feed_rate=1500) -> str:
     code += gcode_gen.generate_code({'a': config['unclamp']}, 1, True)
     code += gcode_gen.generate_code({'z': 0.0}, 1, True)
     code += gcode_gen.generate_code({}, 1, False)
+    manipulator.release()
     return code
 
 def gcode_open_door(radius: float, feed_rate=900) -> str:
@@ -93,6 +143,9 @@ def main():
     else:
         print(f"Printer number {printer_num} not found.")
 
+    print(f"Position:    {position.current_state.id}")
+    print(f"Manipulator: {manipulator.current_state.id}")
+
     code = gcode_move_to_printer(printer_num)
     print(f"G-code to move to printer {printer_num} generated.")
     print(code)
@@ -104,6 +157,9 @@ def main():
     code = gcode_release_plate(20.10)
     print("G-code to release plate")
     print(code)
+
+    print(f"Position:    {position.current_state.id}")
+    print(f"Manipulator: {manipulator.current_state.id}")
 
 if __name__ == "__main__":
     print("Testing printer coordinate retrieval:")
