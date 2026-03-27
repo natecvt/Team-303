@@ -8,11 +8,9 @@ except:
     print("linuxcnc not found, assuming this is for tests\n")
 
 
-result = subprocess.run(["linuxcnc", "linuxcnc/team303_machine.ini"])
+lcnc_process = subprocess.Popen(["linuxcnc", "linuxCNC/team303_machine.ini"])
 
-result.check_returncode()
-
-time.sleep(60.0) # sleep for a minute to give linuxcnc ample time to start
+time.sleep(10.0) # sleep for a minute to give linuxcnc ample time to start
 
 try:
     s = linuxcnc.stat() # create a connection to the status channel
@@ -31,4 +29,6 @@ def ok_for_mdi():
     s.poll()
     return not s.estop and s.enabled and (s.homed.count(1) == s.joints) and (s.interp_state == linuxcnc.INTERP_IDLE)
 
-
+if (ok_for_mdi()):
+	print("Entered MDI-Safe Mode")
+	sys.exit(0)
