@@ -7,8 +7,7 @@ import gcode_gen
 with open('ref_files/config.yaml', 'r') as file:
     # Safely load the YAML content into a Python dictionary
     config = yaml.safe_load(file)
-
-def read_printer_coords(path: str, printer_number: int) -> str|None:
+def read_printer_coords(path: str, printer_number: int) -> dict:
     if not isinstance(printer_number, int) or printer_number < 1 or printer_number > 12:
         raise ValueError("Invalid printer number")
     
@@ -19,7 +18,7 @@ def read_printer_coords(path: str, printer_number: int) -> str|None:
         
         return {"x": float(coords[0]), "y": float(coords[1])}
 
-def gcode_move_to_printer(printer_number: int, feed_rate=1500)-> str|None:
+def gcode_move_to_printer(printer_number: int, feed_rate=1500) -> str:
     coords = read_printer_coords(f'{getenv("HOME")}/Team-303/ref_files/printer_centers.csv', printer_number)
     code = ""
 
@@ -28,7 +27,7 @@ def gcode_move_to_printer(printer_number: int, feed_rate=1500)-> str|None:
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_move_to_home(feed_rate=1500) -> str|None:
+def gcode_move_to_home(feed_rate=1500) -> str:
     code = ""
     code += gcode_gen.generate_code({'x': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'y': 0.0}, 1, True)
@@ -42,7 +41,7 @@ def gcode_move_to_clean(feed_rate=1500) -> str|None:
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_grab_plate(z_dist: float, feed_rate=1500) -> str|None:
+def gcode_grab_plate(z_dist: float, feed_rate=1500) -> str:
     code = ""
     code += gcode_gen.generate_code({}, 92, True)
     code += gcode_gen.generate_code({'s': config['angle_0']}, 3, False)
@@ -55,7 +54,7 @@ def gcode_grab_plate(z_dist: float, feed_rate=1500) -> str|None:
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_release_plate(z_dist: float, feed_rate=1500) -> str|None:
+def gcode_release_plate(z_dist: float, feed_rate=1500) -> str:
     code = ""
     code += gcode_gen.generate_code({'z': 0.0, 'f': feed_rate}, 1, True)
     code += gcode_gen.generate_code({'z': z_dist}, 1, True)
@@ -67,7 +66,7 @@ def gcode_release_plate(z_dist: float, feed_rate=1500) -> str|None:
     code += gcode_gen.generate_code({}, 1, False)
     return code
 
-def gcode_open_door(radius: float, feed_rate=900) -> str|None:
+def gcode_open_door(radius: float, feed_rate=900) -> str:
     code = ""
     code = gcode_gen.generate_code({'s':config['angle_90']}, 1, False)
     code = gcode_gen.generate_code({'x':config['handle_x'], 'y':config['handle_y'], 'f': feed_rate}, 1, True)
@@ -76,7 +75,7 @@ def gcode_open_door(radius: float, feed_rate=900) -> str|None:
     code = gcode_gen.generate_code({'z': 0,}, 1, True)
     return code
 
-def gcode_close_door(radius:float, feed_rate=900) -> str|None:
+def gcode_close_door(radius:float, feed_rate=900) -> str:
     code = ""
     code = gcode_gen.generate_code({'s':config['angle_90']}, 1, False)
     code = gcode_gen.generate_code({'x':config['door_open_x'], 'y':config['door_open_y'], 'f': feed_rate}, 1, True)
