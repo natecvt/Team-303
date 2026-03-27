@@ -6,4 +6,6 @@ pre-commit
 
 paho-mqtt
 
+python-statemachine
+
 -r apriltag_python/requirements.txt
