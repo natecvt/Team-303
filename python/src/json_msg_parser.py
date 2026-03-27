@@ -21,8 +21,7 @@ def printer_number(status) -> str|int:
     else:
         return "Error: not a valid event"
 
-
-def printer_status(current_status):
+def printer_status(current_status: str):
     if current_status == "PRINT_COMPLETE":
         print("The 3D print job has completed successfully.")
     elif current_status == "ERROR":
@@ -30,7 +29,15 @@ def printer_status(current_status):
     else:
         print("Unknown event type.") 
     return
+
+# file should be open before this
+def write_str_as_json(file, contents: str):
+    if not file.writable():
+        print("Invalid file for writing")
     
+    json.dump(contents, file, indent=4)
+
+
 
 def main():
         with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
