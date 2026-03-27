@@ -1,0 +1,16 @@
+{
+  "event_type": "ERROR",
+  "event_id": "evt_error_1234567890",
+  "timestamp": "2025-09-06T14:33:00.789Z",
+  "source": "GANTRY",
+  "printer": {
+    "id": 3,
+    "grid_location": "1C"
+  },
+  "error": {
+    "code": "PLATE_STUCK",
+    "message": "Unable to remove build plate - magnetic force exceeded",
+    "severity": "warning",
+    "retry_available": true
+  }
+}

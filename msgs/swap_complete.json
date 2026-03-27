@@ -1,0 +1,20 @@
+{
+  "event_type": "SWAP_COMPLETE",
+  "event_id": "evt_response_1234567890",
+  "timestamp": "2025-09-06T14:32:15.456Z",
+  "printer": {
+    "id": 3,
+    "grid_location": "1C"
+  },
+  "operation": {
+    "status": "SUCCESS",
+    "duration_seconds": 90,
+    "plate_removed_id": "PLATE_007",
+    "plate_installed_id": "PLATE_008",
+    "errors": []
+  },
+  "gantry_status": {
+    "position": "home",
+    "ready_for_next": true
+  }
+}
