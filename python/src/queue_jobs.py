@@ -9,13 +9,14 @@ def create_message_thread() -> Thread:
 
 def create_main_loop_thread(main_loop) -> Thread | None:
     if callable(main_loop):
-        return Thread(target=test_loop)
+        return Thread(target=main_loop)
     
     return None
 
-def start_threads(mt: Thread, lt: Thread):
-    mt.start()
-    lt.start()
+# number of threads should be 2, but can be any number within this function
+def start_threads(threads: list[Thread]):
+    for thread in threads:
+        thread.start()
 
 def test_loop():
     while True:
@@ -31,12 +32,8 @@ def main():
     mt = create_message_thread()
     lt = create_main_loop_thread(test_loop)
 
-    start_threads(mt, lt)
-
-    time.sleep(10.0)
-    mqr.recieved_q.join()
-
-    print("finished all")
+    if not (mt == None or lt == None):
+        start_threads([mt, lt])
 
 if __name__ == "__main__":
     main()

@@ -7,6 +7,9 @@ ROWS = config["ds_rows"]
 COLS = config["ds_cols"]
 
 class DirtyShelf:
+    __rows: int
+    __cols: int
+    __storage: list[list]
 
     def __init__(self, rows: int, cols: int):
         self.__rows = rows
@@ -25,27 +28,36 @@ class DirtyShelf:
         return True
 
     def detect_first_free(self) -> list:
-        row = -1
-        col = -1
-
-        for i in range(0, self.__rows-1):
-            for j in range(0, self.__cols-1):
+        for i in range(self.__rows):
+            for j in range(self.__cols):
                 if (self.__storage[i][j] < MAX_STORAGE):
-                    row = i
-                    col = j
-                    break
-        
-        if (row == -1):
-            print("Free position not found")
+                    return [i, j]
+            
+        print("Free position not found")
 
-        return [row, col]
+        return [-1, -1]
     
     def remove_all(self):
-        self.__storage = [[0 for _ in range(self.__cols-1)] for _ in range(self.__rows)]
+        self.__storage = [[0 for _ in range(self.__cols)] for _ in range(self.__rows)]
 
     def get_storage(self) -> list:
         return self.__storage
         
+class CleanDispenser:
+    __amount: int
+
+    def remove_one(self):
+        if self.is_empty():
+            print("Clean storage empty")
+            return
+
+        self.__amount -= 1
+
+    def get_amount(self) -> int:
+        return 
+    
+    def is_empty(self) -> bool:
+        return self.__amount == 0
 
 def main():
 
