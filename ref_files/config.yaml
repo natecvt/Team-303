@@ -3,21 +3,78 @@
 linuxcnc_folder: "linuxCNC/team303_machine.ini"
 linuxcnc_timeout: 120.0
 
+axis_x_max: 2740.0
+axis_y_max: 1220.0
+axis_z_max: 420.00
+
 mqtt_broker_ip: "192.168.0.1"
 mqtt_received_topic: "test/topic"
 mqtt_error_topic: "test/error"
 mqtt_complete_topic: "test/complete"
 
-ds_amount_per: 4
-ds_rows: 7
-ds_cols: 4
+# transform from global zero to camera center
+transform_to_camera: [
+  x: -70.6,
+  y: 64.5,
+  z: 50.0,
+]
 
-gripper_axis: "A"
+# transform from camera to center of end of end effector, at angle of 0°
+camera_transform_coeffs: [
+  x: -50.0,
+  y: -15.0,
+  z: 100.0,
+  arm_radius: ,
+  arm_center_x: ,
+  arm_center_y: ,
+  arm_center_z: ,
+]
+# dimensions of camera frustum in shelf plane XY
+camera_fov_length: 50.0
+camera_fov_height: 40.0
+
+
+ds_amount_per: 4
+ds_rows: 4
+ds_cols: 7
+ds_angle: -13.0
+
+# gap in ids to allow for more consecutive printers
+ds_cols_tag_ids: {
+  64: 1,
+  65: 2,
+  66: 3,
+  67: 4,
+  68: 5,
+  69: 6,
+  70: 7,
+}
+
+cs_amount: 64
+cs_tag_id: 0
+
+gripper_axis: "U"
 gripper_down: 10.0
 gripper_up: 9.0
 
-clean_plate_axis: "B"
+clean_plate_axis: "V"
 clean_plate_distance: 200.0
+
+printer_number: 12
+printer_tag_ids: [
+  1: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 9,
+  10: 10,
+  11: 11,
+  12: 12
+]
 
 clean_x: 190 #arbritrary
 clean_y: 200 #arbritrary

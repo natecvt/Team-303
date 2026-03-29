@@ -16,6 +16,8 @@ TOPIC_R: str = config["mqtt_received_topic"]
 TOPIC_E: str = config["mqtt_error_topic"]
 TOPIC_C: str = config["mqtt_complete_topic"]
 
+MQTT_IP: str = config["mqtt_broker_ip"]
+
 recieved_q = queue.Queue()
 send_q = queue.Queue()
 
@@ -47,12 +49,12 @@ def connect(host, port=1883, ka=60):
         print(f"Connection failed with error code: {errc}")
         return
     
-def publish_error():
-    pub.single(TOPIC_E)
+def publish_error(msg, host: str, port=1883, ka=60):
+    pub.single(TOPIC_E, payload=msg, hostname=host, port=port, keepalive=ka)
     pass
 
-def publish_complete():
-    pub.single(TOPIC_C)
+def publish_complete(msg, host: str, port=1883, ka=60):
+    pub.single(TOPIC_C, payload=msg, hostname=host, port=port, keepalive=ka)
     pass
 
 def main():

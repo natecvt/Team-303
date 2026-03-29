@@ -6,6 +6,8 @@ MAX_STORAGE = config["ds_amount_per"]
 ROWS = config["ds_rows"]
 COLS = config["ds_cols"]
 
+AMOUNT = config["cs_amount"]
+
 class DirtyShelf:
     __rows: int
     __cols: int
@@ -42,9 +44,15 @@ class DirtyShelf:
 
     def get_storage(self) -> list:
         return self.__storage
+    
+    def is_full(self):
+        return self.detect_first_free() == [-1, -1]
         
 class CleanDispenser:
     __amount: int
+
+    def __init__(self, amount: int):
+        self.__amount = amount
 
     def remove_one(self):
         if self.is_empty():
