@@ -1,12 +1,10 @@
 import numpy as np
 import yaml
+from config import config
 
-with open("ref_files/config.yaml", "r") as file:
-    config = yaml.safe_load(file)
-
-    MAX_STORAGE = config["ds_amount_per"]
-    ROWS = config["ds_rows"]
-    COLS = config["ds_cols"]
+MAX_STORAGE = config["ds_amount_per"]
+ROWS = config["ds_rows"]
+COLS = config["ds_cols"]
 
 class DirtyShelf:
 

@@ -3,7 +3,7 @@ import paho.mqtt.publish as pub
 import json_msg_parser as jmp
 from pathlib import Path
 import queue
-import config
+from config import config
 
 
 try: 
@@ -12,9 +12,9 @@ except:
     print("Path not found")
     exit(1)
 
-TOPIC_R: str = config.get_param("mqtt_received_topic")
-TOPIC_E: str = config.get_param("mqtt_error_topic")
-TOPIC_C: str = config.get_param("mqtt_complete_topic")
+TOPIC_R: str = config["mqtt_received_topic"]
+TOPIC_E: str = config["mqtt_error_topic"]
+TOPIC_C: str = config["mqtt_complete_topic"]
 
 recieved_q = queue.Queue()
 send_q = queue.Queue()

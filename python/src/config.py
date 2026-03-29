@@ -7,6 +7,3 @@ config = yaml.safe_load(file)
 file.close()
 del file
 
-def get_param(param: str):
-    return config[param]
-

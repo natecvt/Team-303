@@ -2,12 +2,8 @@ from os import getenv
 import yaml
 import gcode_gen
 from state_machine import position, manipulator
+from config import config
 
-
-# Open the YAML file in read mode
-with open('ref_files/config.yaml', 'r') as file:
-    # Safely load the YAML content into a Python dictionary
-    config = yaml.safe_load(file)
 def read_printer_coords(path: str, printer_number: int) -> dict:
     if not isinstance(printer_number, int) or printer_number < 1 or printer_number > 12:
         raise ValueError("Invalid printer number")
