@@ -18,3 +18,21 @@ gripper_up: 9.0
 
 clean_plate_axis: "B"
 clean_plate_distance: 200.0
+
+clean_x: 190 #arbritrary
+clean_y: 200 #arbritrary
+
+clamp: 2000 #arbritrary
+unclamp: 1000 #arbritrary 
+
+angle_90: 90 #arbritrary
+angle_15: 15 #arbritrary
+angle_0: 0 #arbritrary
+
+handle_x: 0 #arbritrary
+handle_y: 0 #arbritrary
+handle_z: 0 #arbritrary
+
+door_open_x: 0 #arbritrary
+door_open_y: 0 #arbritrary
+door_radius: 0 #arbritrary
