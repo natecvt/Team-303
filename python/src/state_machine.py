@@ -25,8 +25,8 @@ class PositionSM(StateMachine):
     # Define states
     Home = State(initial=True)
     Printer = State()
-    DirtyS = State() 
-    CleanS = State() 
+    DirtyS = State()
+    CleanS = State()
 
     go_printer = Home.to(Printer, on="placeholder") | CleanS.to(Printer, on="placeholder")
     go_home = Printer.to(Home, on="placeholder") | DirtyS.to(Home, on="placeholder") | CleanS.to(Home, on="placeholder")

@@ -41,7 +41,7 @@ mcode_template = {
 mcode_template = MappingProxyType(mcode_template) # make immutable
 
 # G-code / M-code generation function
-def generate_code(command_args: dict, command_type: int, is_gcode = True) -> MappingProxyType[int, list]:
+def generate_code(command_args: dict, command_type: int, is_gcode = True) -> str:
     if is_gcode:
         template_dict = gcode_template
     else:
@@ -57,7 +57,6 @@ def generate_code(command_args: dict, command_type: int, is_gcode = True) -> Map
         return template_dict[command_type][0]
 
     template = str(template_dict[command_type][0])
-    print(template_dict[command_type][1])
     possible_nargs = (template_dict[command_type][1])
     nargs = len(command_args)
 
