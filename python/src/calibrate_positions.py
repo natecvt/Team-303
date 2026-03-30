@@ -2,6 +2,9 @@ from config import config
 import gcode_gen as gg
 import math as m
 import numpy as np
+import csv
+import yaml
+import json
 
 try:
     import linuxcnc_interface as li
@@ -16,7 +19,7 @@ X_MAX = config["axis_x_max"]
 Y_MAX = config["axis_y_max"]
 Z_MAX = config["axis_z_max"]
 
-T_CAMERA = config["transform_to_camera"]
+T_CAMERA = config["camera_global_transform"]
 
 CAMERA_T = config["camera_transform_coeffs"]
 CAMERA_FOV_X = config["camera_fov_length"]
@@ -26,12 +29,10 @@ NX = int(np.ceil(X_MAX / CAMERA_FOV_X))
 NY = int(np.ceil(Y_MAX / CAMERA_FOV_Y))
 
 DS_IDS: dict = config["ds_cols_tag_ids"]
-DS_COLS = DS_IDS.__len__()
+DS_COLS = len(DS_IDS)
 
 PR_IDS: dict = config["printer_tag_ids"]
-PR_NUM = PR_IDS.__len__()
-
-
+PR_NUM = len(PR_IDS)
 
 def precomp_grid_search() -> np.ndarray:
     dx = CAMERA_FOV_X * 0.8
@@ -44,14 +45,47 @@ def precomp_grid_search() -> np.ndarray:
     coords = np.stack((x, y), axis=2)
     return coords
 
+ds_cols_coords = {"ds_cols_coords": []}
 def write_ds_coords(xfound, yfound, col):
-    pass
+    pos = {col: {"x": xfound, "y": yfound}}
+    ds_cols_coords["ds_cols_coords"].append(pos)
 
+    if len(ds_cols_coords["ds_cols_coords"]) == DS_COLS:
+        with open("ref_files/config.yaml", "r") as file:
+            config_r = yaml.load(file, yaml.FullLoader)
+            config_r["ds_cols_coords"] = ds_cols_coords["ds_cols_coords"]
+
+        with open("ref_files/config.yaml", "w") as file:
+            yaml.dump(config_r, file)
+
+        ds_cols_coords["ds_cols_coords"] = []
+        
+
+pr_num_coords = {"pr_num_coords": []}
 def write_pr_coords(xfound, yfound, num):
-    pass
+    pos = {num: {"x": xfound, "y": yfound}}
+    pr_num_coords["pr_num_coords"].append(pos)
+
+    print(pr_num_coords)
+
+    if len(pr_num_coords["pr_num_coords"]) == DS_COLS:
+        with open("ref_files/config.yaml", "r") as file:
+            config_r = yaml.load(file, yaml.FullLoader)
+            config_r["pr_num_coords"] = pr_num_coords["pr_num_coords"]
+
+        with open("ref_files/config.yaml", "w") as file:
+            yaml.dump(config_r, file)
+
+        pr_num_coords["pr_num_coords"] = []
+
 
 def write_cs_coords(xfound, yfound):
-    pass
+    with open("ref_files/config.yaml", "r") as file:
+        config_r = yaml.load(file, yaml.FullLoader)
+        config_r["cs_coords"] = {"x": xfound, "y": yfound}
+
+    with open("ref_files/config.yaml", "w") as file:
+        yaml.dump(config_r, file)
 
 def find_tags_loop(params, cap, detector):
     xfound = 0.0
@@ -91,20 +125,17 @@ def find_tags_loop(params, cap, detector):
 
 
 def main():
-    if HAS_AP:
-        params = al.load_config("python/src/apriltag_python/config.yaml")
-        [cap, detector] = al.init_capture_apriltags(params)
+    write_ds_coords(0.1, 0.1, 1)
+    write_ds_coords(0.1, 0.1, 2)
+    write_ds_coords(0.1, 0.1, 3)
+    write_ds_coords(0.1, 0.1, 4)
+    write_ds_coords(0.1, 0.1, 5)
+    write_ds_coords(0.1, 0.1, 6)
+    write_ds_coords(0.1, 0.1, 7)
+    
+    write_cs_coords(0.3, 0.2)
+    write_cs_coords(0.5, 0.4)
 
-        if (not li.open_linuxcnc()):
-            print("Linuxcnc failed to initialize properly")
-            exit(1)
-        
-        if (not li.home_all_axes()):
-            exit(2)
-    
-    precomp_grid_search()
-    
-        
 
 if __name__ == "__main__":
     main()
