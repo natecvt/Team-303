@@ -34,6 +34,11 @@ door_radius: 0
 ds_amount_per: 4
 ds_angle: -13.0
 ds_cols: 7
+ds_coords:
+  x: 1000.0
+  y: 800.0
+ds_dx: 100.0
+ds_dy: -40.0
 ds_cols_coords:
 - 1:
     x: 0.1
@@ -68,6 +73,10 @@ ds_rows: 4
 gripper_axis: U
 gripper_down: 10.0
 gripper_up: 9.0
+
+manipulator_angle_0: 900
+manipulator_angle_90: 100
+
 handle_x: 0
 handle_y: 0
 handle_z: 0
