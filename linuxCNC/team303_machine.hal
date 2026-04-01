@@ -212,7 +212,7 @@ net vdir	=> hal_gpio.GPIO24-out
 net min-home-x	<= hal_gpio.GPIO7-in
 net min-home-y	<= hal_gpio.GPIO12-in
 net min-home-z	<= hal_gpio.GPIO13-in
-net all-limit   <= hal_gpio.GPIO8-in-not
+#net all-limit   <= hal_gpio.GPIO8-in
 #pin 22 (GPIO25) is the eSTOP
 
 #net X-home hal_pi_gpio.pin-22-in => axis.0.home-sw-in axis.0.neg-lim-sw-in

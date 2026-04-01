@@ -47,7 +47,8 @@ def connect(host, port=1883, ka=60):
     errc = mqttc.connect(host, port, ka)
     if errc != 0:
         print(f"Connection failed with error code: {errc}")
-        return
+        return False
+    return True
     
 def publish_error(msg, host: str, port=1883, ka=60):
     pub.single(TOPIC_E, payload=msg, hostname=host, port=port, keepalive=ka)

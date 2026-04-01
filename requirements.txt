@@ -8,4 +8,4 @@ paho-mqtt
 
 python-statemachine
 
--r apriltag_python/requirements.txt
+-r python/src/apriltag_python/requirements.txt

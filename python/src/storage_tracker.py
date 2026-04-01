@@ -90,7 +90,7 @@ class CleanDispenser:
         self.__amount -= 1
 
     def get_amount(self) -> int:
-        return 
+        return self.__amount
     
     def is_empty(self) -> bool:
         return self.__amount == 0
@@ -98,7 +98,7 @@ class CleanDispenser:
     def get_origin(self) -> list:
         return [self.__x, self.__y]
     
-ds = DirtyShelf(ROWS, COLS, X, Y)
+ds = DirtyShelf(ROWS, COLS, X, Y, DX, DY)
 cs = CleanDispenser(AMOUNT)
 
 def main():

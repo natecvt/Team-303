@@ -35,10 +35,10 @@ ds_amount_per: 4
 ds_angle: -13.0
 ds_cols: 7
 ds_coords:
-  x: 1000.0
-  y: 800.0
-ds_dx: 100.0
-ds_dy: -40.0
+  x: 1225.0
+  y: 760.0
+ds_dx: 278.0
+ds_dy: -80.0
 ds_cols_coords:
 - 1:
     x: 0.1
@@ -82,7 +82,7 @@ handle_y: 0
 handle_z: 0
 linuxcnc_folder: linuxCNC/team303_machine.ini
 linuxcnc_timeout: 120.0
-mqtt_broker_ip: 192.168.0.1
+mqtt_broker_ip: localhost
 mqtt_complete_topic: test/complete
 mqtt_error_topic: test/error
 mqtt_received_topic: test/topic
@@ -100,4 +100,3 @@ printer_tag_ids:
   10: 10
   11: 11
   12: 12
-unclamp: 1000
