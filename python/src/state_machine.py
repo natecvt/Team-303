@@ -1,5 +1,7 @@
 from statemachine import StateMachine, State, exceptions
-
+from storage_tracker import ds, cs
+from json_msg_parser import printer_id
+from config import config
 class ManipulatorSM(StateMachine):
     # Define states
     Empty = State(initial=True)
@@ -20,6 +22,26 @@ class ManipulatorSM(StateMachine):
     def placeholder(self):
         print(self.configuration)
         pass
+    
+    def plate_grab(self) -> bool:
+        # if clamp not open
+        #   open clamp
+        # open door gcode
+        # rotate -15° gcode
+        # do plate grab moves
+        # close door
+        pass
+    
+    def plate_release(self, ds) -> bool:
+        dp_loc_idx = [0,0]
+        # if clamp open
+        # why?
+        dp_loc_idx = ds.detect_first_free()
+        
+        # find dps position
+        # do plate release moves
+        # move out
+        pass
 
 class PositionSM(StateMachine):
     # Define states
@@ -28,10 +50,10 @@ class PositionSM(StateMachine):
     DirtyS = State()
     CleanS = State()
 
-    go_printer = Home.to(Printer, on="placeholder") | CleanS.to(Printer, on="placeholder")
-    go_home = Printer.to(Home, on="placeholder") | DirtyS.to(Home, on="placeholder") | CleanS.to(Home, on="placeholder")
-    go_dirty = Printer.to(DirtyS, on="placeholder")
-    go_clean = DirtyS.to(CleanS, on="placeholder")
+    go_printer = Home.to(Printer, cond="placeholder") | CleanS.to(Printer, cond="placeholder")
+    go_home = Printer.to(Home, cond="placeholder") | DirtyS.to(Home, cond="placeholder") | CleanS.to(Home, cond="placeholder")
+    go_dirty = Printer.to(DirtyS, cond="placeholder")
+    go_clean = DirtyS.to(CleanS, cond="placeholder")
 
     def require_position(self, *allowed_states):
         if self.current_state not in allowed_states:
@@ -44,6 +66,20 @@ class PositionSM(StateMachine):
         print(self.configuration)
         pass
 
+    def home_to_printer(self, m: ManipulatorSM, printer_id: int) -> bool:
+        printer_location = [0,0]
+        if ds.is_full():
+            return False
+        if m.require_manipulator(~m.Empty):
+            return False
+        # if manipulator is not 90 degrees:
+        # return false
+        if position.require_position(~position.Home):
+            return False
+        if printer_id == None:
+            return False
+        printer_location = config["printer_locations"].index(printer_id)
+    
 manipulator = ManipulatorSM()
 position = PositionSM()
 
@@ -58,6 +94,8 @@ def main():
 
     manipulator.release()
     manipulator.clean()
+    manipulator.Empty
+    home_to_printer(manipulator.empty, printer_id)
 
 if __name__ == "__main__":
     main()

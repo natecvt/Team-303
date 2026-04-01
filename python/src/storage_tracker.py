@@ -66,6 +66,9 @@ class CleanDispenser:
     
     def is_empty(self) -> bool:
         return self.__amount == 0
+    
+ds = DirtyShelf(ROWS, COLS)
+cs = CleanDispenser(AMOUNT)
 
 def main():
 
