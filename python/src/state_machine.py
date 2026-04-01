@@ -132,23 +132,23 @@ class PositionSM(StateMachine):
         
 
 
-manipulator = ManipulatorSM()
-position = PositionSM()
+m = ManipulatorSM()
+p = PositionSM()
 
 def main():
-    manipulator.activate_initial_state()
+    m.activate_initial_state()
 
-    manipulator.grab()
+    m.grab()
     try:
-        manipulator.clean()
+        m.clean()
     except exceptions.TransitionNotAllowed:
         print("Wrong transition queued, expected")
 
-    manipulator.release()
-    manipulator.clean()
-    print(ManipulatorSM.Clean in manipulator.configuration)
+    m.release()
+    m.clean()
+    print(ManipulatorSM.Clean in m.configuration)
 
-    print(manipulator.require_manipulator(ManipulatorSM.Clean))
+    print(m.require_manipulator(ManipulatorSM.Clean))
 
 if __name__ == "__main__":
     main()
