@@ -29,7 +29,7 @@ def main():
         exit(1)
 
     # mqtt
-    if not mq.assign_callbacks(mq.on_connect, mq.on_message):
+    if not mq.assign_callbacks(on_msg=mq.on_message, on_con=mq.on_connect):
         exit(2)
 
     ip = config["mqtt_broker_ip"]
