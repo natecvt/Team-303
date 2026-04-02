@@ -5,13 +5,13 @@ import time
 import mqtt_manager as mqr
 
 def create_message_thread() -> Thread:
-    return Thread(target=mqr.mqttc.loop_forever)
+    return Thread(target=mqr.mqttc.loop_forever, name="messager")
 
-def create_main_loop_thread(main_loop) -> Thread | None:
+def create_main_loop_thread(main_loop) -> Thread:
     if callable(main_loop):
-        return Thread(target=main_loop)
+        return Thread(target=main_loop, name="main")
     
-    return None
+    return Thread()
 
 # number of threads should be 2, but can be any number within this function
 def start_threads(threads: list[Thread]):

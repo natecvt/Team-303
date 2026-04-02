@@ -1,7 +1,9 @@
 from statemachine import StateMachine, State, exceptions
-from storage_tracker import ds, cs
-from json_msg_parser import printer_id
 from config import config
+import linuxcnc_interface as li
+import gantry_actions as ga
+from storage_tracker import cs, ds
+
 class ManipulatorSM(StateMachine):
     # Define states
     Empty = State(initial=True)
@@ -12,12 +14,11 @@ class ManipulatorSM(StateMachine):
     release = Full.to(Empty, on="placeholder")
     clean = Empty.to(Clean, on="placeholder") | Clean.to(Empty, on="placeholder")
 
-    def require_manipulator(*allowed_states):
-        if manipulator.current_state not in allowed_states:
-            allowed = [s.id for s in allowed_states]
-            raise RuntimeError(
-                f"Manipulator must be {allowed} but is '{manipulator.current_state.id}'"
-            )
+    def require_manipulator(self, allowed_states):
+        if (allowed_states not in self.configuration):
+            return False
+        
+        return True
         
     def placeholder(self):
         print(self.configuration)
@@ -74,64 +75,124 @@ class PositionSM(StateMachine):
     DirtyS = State()
     CleanS = State()
 
-    go_printer = Home.to(Printer, cond="placeholder") | CleanS.to(Printer, cond="placeholder")
-    go_home = Printer.to(Home, cond="placeholder") | DirtyS.to(Home, cond="placeholder") | CleanS.to(Home, cond="placeholder")
-    go_dirty = Printer.to(DirtyS, cond="placeholder")
-    go_clean = DirtyS.to(CleanS, cond="placeholder")
+    go_printer = Home.to(Printer, on="placeholder") | CleanS.to(Printer, cond="clean_to_printer")
+    go_home = Printer.to(Home, cond="printer_to_home") | DirtyS.to(Home, cond="dirty_to_home") | CleanS.to(Home, cond="clean_to_home")
+    go_dirty = Printer.to(DirtyS, cond="printer_to_dirty")
+    go_clean = DirtyS.to(CleanS, cond="dirty_to_clean")
 
     def require_position(self, *allowed_states):
-        if self.current_state not in allowed_states:
-            allowed = [s.id for s in allowed_states]
-            raise RuntimeError(
-                f"Position must be {allowed} but is '{position.current_state.id}'"
-            )
+        if (allowed_states not in self.configuration):
+            return False
+        
+        return True
         
     def placeholder(self):
         print(self.configuration)
         pass
 
-    def home_to_printer(self, m: ManipulatorSM, printer_id: int) -> bool:
-        printer_location = [0,0]
-        if ds.is_full():
+    def clean_to_printer(self, m: ManipulatorSM, number: int) -> bool:
+        if not (m.require_manipulator(ManipulatorSM.Clean)):
             return False
-        if m.require_manipulator(~m.Empty):
+        
+        li.s.poll()
+        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
             return False
-        # if manipulator is not 90 degrees:
-        # return false
-        if position.require_position(~position.Home):
-            return False
-        if printer_id == None:
-            return False
-        printer_location = config["printer_locations"].index(printer_id)
+        
+        if li.ok_for_mdi():
+
+            move = ga.gcode_move_to_printer(number)
+
+            if li.send_mdi_line(move):
+                return True
+
+        return False
     
-manipulator = ManipulatorSM()
-position = PositionSM()
+    def printer_to_home(self, m: ManipulatorSM) -> bool:
+        if not (m.require_manipulator(ManipulatorSM.Empty)):
+            return False
+        
+        li.s.poll()
+        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+            return False
+        
+        if li.home_all_axes():
+            return True
+        
+        return False
 
-def dirty_home():
-    if manipulator.Empty and manipulator_degree == 90:
-        # code = gcode_move_to_home()
-    else:
-        raise RuntimeError("error fix it bub")
+    def dirty_to_home(self, m: ManipulatorSM) -> bool:
+        if not (m.require_manipulator(ManipulatorSM.Empty)):
+            return False
+        
+        li.s.poll()
+        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+            return False
+        
+        if li.home_all_axes():
+            return True
+        
+        return False
 
-def dirty_clean():
-    manipulator.require_manipulator(manipulator.Empty)
-    # code = gcode_move_to_clean()
+    def clean_to_home(self, m: ManipulatorSM) -> bool:
+        if not (m.require_manipulator(ManipulatorSM.Empty)):
+            return False
+        
+        li.s.poll()
+        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+            return False
+        
+        if li.home_all_axes():
+            return True
+        
+        return False
 
+    def printer_to_dirty(self, m: ManipulatorSM) -> bool:
+        if (ds.is_full()):
+            return False
+        
+        [x, y] = ds.coords_first_free()
+
+        if li.ok_for_mdi():
+            move = ga.gcode_generic_move(x, y)
+
+            if li.send_mdi_line(move):
+                return True
+            
+        return False
     
+    def dirty_to_clean(self, m: ManipulatorSM):
+        if (cs.is_empty()):
+            return False
+        
+        [x, y] = cs.get_origin()
+
+        if li.ok_for_mdi():
+            move = ga.gcode_generic_move(x, y)
+
+            if li.send_mdi_line(move):
+                return True
+            
+        return False
+        
+
+
+m = ManipulatorSM()
+p = PositionSM()
 
 def main():
-    manipulator.activate_initial_state()
+    m.activate_initial_state()
 
-    manipulator.grab()
+    m.grab()
     try:
-        manipulator.clean()
+        m.clean()
     except exceptions.TransitionNotAllowed:
         print("Wrong transition queued, expected")
 
-    manipulator.release()
-    manipulator.clean()
-    manipulator.Empty
-    home_to_printer(manipulator.empty, printer_id)
+    m.release()
+    m.clean()
+    print(ManipulatorSM.Clean in m.configuration)
+
+    print(m.require_manipulator(ManipulatorSM.Clean))
 
 if __name__ == "__main__":
     main()

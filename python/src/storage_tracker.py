@@ -2,9 +2,13 @@ import numpy as np
 import yaml
 from config import config
 
-MAX_STORAGE = config["ds_amount_per"]
-ROWS = config["ds_rows"]
-COLS = config["ds_cols"]
+MAX_STORAGE: int = config["ds_amount_per"]
+ROWS: int = config["ds_rows"]
+COLS: int = config["ds_cols"]
+X: float = config["ds_coords"]["x"]
+Y: float = config["ds_coords"]["y"]
+DX: float = config["ds_dx"]
+DY: float = config["ds_dy"]
 
 AMOUNT = config["cs_amount"]
 
@@ -13,10 +17,22 @@ class DirtyShelf:
     __cols: int
     __storage: list[list]
 
-    def __init__(self, rows: int, cols: int):
+    # origin point, top left
+    __x: float
+    __y: float
+
+    # spacing between columns and rows
+    __dx: float
+    __dy: float
+
+    def __init__(self, rows: int, cols: int, x: float, y: float, dx: float, dy: float):
         self.__rows = rows
         self.__cols = cols
         self.__storage = [[0 for _ in range(cols)] for _ in range(rows)]
+        self.__x = x
+        self.__y = y
+        self.__dx = dx
+        self.__dy = dy
 
     def add_one(self, row, col) -> bool:
         if row > self.__rows-1 or col > self.__cols-1 or row < 0 or col < 0:
@@ -45,11 +61,23 @@ class DirtyShelf:
     def get_storage(self) -> list:
         return self.__storage
     
+    def get_origin(self) -> list:
+        return [self.__x, self.__y]
+    
+    def coords_first_free(self) -> list:
+        [ny, nx] = self.detect_first_free()
+        x = self.__x + nx * self.__dx
+        y = self.__y + ny * self.__dy
+
+        return [x, y]
+    
     def is_full(self):
         return self.detect_first_free() == [-1, -1]
         
 class CleanDispenser:
     __amount: int
+    __x: float
+    __y: float
 
     def __init__(self, amount: int):
         self.__amount = amount
@@ -62,17 +90,18 @@ class CleanDispenser:
         self.__amount -= 1
 
     def get_amount(self) -> int:
-        return 
+        return self.__amount
     
     def is_empty(self) -> bool:
         return self.__amount == 0
     
-ds = DirtyShelf(ROWS, COLS)
+    def get_origin(self) -> list:
+        return [self.__x, self.__y]
+    
+ds = DirtyShelf(ROWS, COLS, X, Y, DX, DY)
 cs = CleanDispenser(AMOUNT)
 
 def main():
-
-    ds = DirtyShelf(ROWS, COLS)
     ds.add_one(0, 0)
     ds.add_one(0, 0)
     ds.add_one(0, 0)

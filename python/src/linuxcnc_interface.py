@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import time
-import config
+from config import config
 
 try:
     import linuxcnc
@@ -9,11 +9,11 @@ except:
     print("linuxcnc not found, don't run this on other machines\n")
     sys.exit(1)
 
-LCNC_PATH: str = config.get_param("linuxcnc_folder")
-LCNC_MOTION_TIMEOUT: float = config.get_param("linuxcnc_timeout")
+LCNC_PATH: str = config["linuxcnc_folder"]
+LCNC_MOTION_TIMEOUT: float = config["linuxcnc_timeout"]
 
 lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
-time.sleep(30.0) # sleep for a minute to give linuxcnc ample time to start
+time.sleep(10.0) # sleep for a minute to give linuxcnc ample time to start
 
 
 s = linuxcnc.stat()
@@ -138,7 +138,7 @@ def main():
         exit(1)
     
     if (home_all_axes()):
-        send_mdi_line("G01 X100 Y100 F1500")
+        send_mdi_line("G01 X00 Y00 F1500")
         print("Sample MDI sucessful")
 
 if __name__ == "__main__":
