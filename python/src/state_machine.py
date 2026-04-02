@@ -45,27 +45,25 @@ class ManipulatorSM(StateMachine):
         pass
 
     def clean_grab():
-        position.require_position(position.CleanS)
-        manipulator.require_manipulator(manipulator.Empty)
-        if CleanDispenser.is_empty:
-            raise RuntimeError("Clean dispenser is empty")
+        p.require_position(p.CleanS)
+        if cs.is_empty():
+            return False
         manipulator_clamp = False
         manipulator_degree = 0
-        code = gcode_grab_clean()
+        code = ga.gcode_grab_clean()
         manipulator_degree = 90
 
 
     def clean_release():
-        position.require_position(position.Printer)
-        manipulator.require_manipulator(manipulator.Clean)
+        p.require_position(p.Printer)
         if manipulator_degree == 90:
-            code = gcode_open_door()
+            code = ga.gcode_open_door()
         manipulator_degree = -15
-        code = gcode_move_printer()
+        code = ga.gcode_move_printer()
         manipulator_clamp = False
-        code = gcode_out_printer()
+        code = ga.gcode_out_printer()
         manipulator_degree = 90
-        code = gcode_close_door()
+        code = ga.gcode_close_door()
 
         
 class PositionSM(StateMachine):
@@ -94,8 +92,7 @@ class PositionSM(StateMachine):
         if not (m.require_manipulator(ManipulatorSM.Clean)):
             return False
         
-        li.s.poll()
-        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+        if not (li.check_spindle(config["angle_90"])):
             return False
         
         if li.ok_for_mdi():
@@ -111,8 +108,7 @@ class PositionSM(StateMachine):
         if not (m.require_manipulator(ManipulatorSM.Empty)):
             return False
         
-        li.s.poll()
-        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+        if not (li.check_spindle(config["angle_90"])):
             return False
         
         if li.home_all_axes():
@@ -124,8 +120,7 @@ class PositionSM(StateMachine):
         if not (m.require_manipulator(ManipulatorSM.Empty)):
             return False
         
-        li.s.poll()
-        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+        if not (li.check_spindle(config["angle_90"])):
             return False
         
         if li.home_all_axes():
@@ -137,8 +132,7 @@ class PositionSM(StateMachine):
         if not (m.require_manipulator(ManipulatorSM.Empty)):
             return False
         
-        li.s.poll()
-        if not (li.s.spindle.enabled and li.s.spindle.speed == config["angle_90"]):
+        if not (li.check_spindle(config["angle_90"])):
             return False
         
         if li.home_all_axes():

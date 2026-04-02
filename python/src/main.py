@@ -45,6 +45,8 @@ def main():
     if (lt.name == "main"):
         print("starting threads...")
         qj.start_threads([mt, lt])
+    else: 
+        exit(3)
 
     print("main done")
 

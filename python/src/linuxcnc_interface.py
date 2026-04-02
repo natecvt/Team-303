@@ -131,6 +131,20 @@ def send_mdi_line(code: str) -> bool:
     print("Unhandled error caught")
     return False
 
+def multiline_mdi_loop(codes: list[str]) -> bool:
+    for code in codes:
+        if (send_mdi_line(code)):
+            continue
+        print("MDI Line Failed: " + code)
+        return False
+    return True
+
+def check_spindle(speed: int) -> bool:
+    s.poll()
+    if (s.spindle.enabled and s.spindle.speed == speed):
+        return True
+    
+    return False
 
 def main():
     if (not open_linuxcnc()):
