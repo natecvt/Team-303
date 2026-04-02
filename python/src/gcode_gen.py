@@ -18,6 +18,7 @@ gcode_template = {
     90 : ["G90\n", (0,)], # absolute programming
     91 : ["G91\n", (0,)], # incremental programming
     92 : ["G92 Xx Yy Zz\n", (1, 2, 3)], # set position
+    92.1 : ["G92.1\n", (0,)], # reset G92 position to actual zero
     93 : ["G93\n", (0,)], # inverse time feed rate
     94 : ["G94\n", (0,)], # units per minute feed rate
     95 : ["G95\n", (0,)], # units per revolution feed rate

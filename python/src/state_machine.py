@@ -23,7 +23,51 @@ class ManipulatorSM(StateMachine):
     def placeholder(self):
         print(self.configuration)
         pass
+    
+    def plate_grab(self) -> bool:
+        # if clamp not open
+        #   open clamp
+        # open door gcode
+        # rotate -15° gcode
+        # do plate grab moves
+        # close door
+        pass
+    
+    def plate_release(self, ds) -> bool:
+        dp_loc_idx = [0,0]
+        # if clamp open
+        # why?
+        dp_loc_idx = ds.detect_first_free()
+        
+        # find dps position
+        # do plate release moves
+        # move out
+        pass
 
+    def clean_grab():
+        position.require_position(position.CleanS)
+        manipulator.require_manipulator(manipulator.Empty)
+        if CleanDispenser.is_empty:
+            raise RuntimeError("Clean dispenser is empty")
+        manipulator_clamp = False
+        manipulator_degree = 0
+        code = gcode_grab_clean()
+        manipulator_degree = 90
+
+
+    def clean_release():
+        position.require_position(position.Printer)
+        manipulator.require_manipulator(manipulator.Clean)
+        if manipulator_degree == 90:
+            code = gcode_open_door()
+        manipulator_degree = -15
+        code = gcode_move_printer()
+        manipulator_clamp = False
+        code = gcode_out_printer()
+        manipulator_degree = 90
+        code = gcode_close_door()
+
+        
 class PositionSM(StateMachine):
     # Define states
     Home = State(initial=True)
