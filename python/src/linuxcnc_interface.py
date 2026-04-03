@@ -12,6 +12,8 @@ except:
 LCNC_PATH: str = config["linuxcnc_folder"]
 LCNC_MOTION_TIMEOUT: float = config["linuxcnc_timeout"]
 
+ZERO_TOLERANCE: float = 2.0 # mm
+
 lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
 time.sleep(10.0) # sleep for a minute to give linuxcnc ample time to start
 
@@ -142,6 +144,14 @@ def multiline_mdi_loop(codes: list[str]) -> bool:
 def check_spindle(speed: int) -> bool:
     s.poll()
     if (s.spindle.enabled and s.spindle.speed == speed):
+        return True
+    
+    return False
+
+# important for doing spindle commands
+def check_z_is_zero() -> bool:
+    s.poll()
+    if (s.actual_position[2] <= ZERO_TOLERANCE):
         return True
     
     return False

@@ -11,6 +11,8 @@ DX: float = config["ds_dx"]
 DY: float = config["ds_dy"]
 
 AMOUNT = config["cs_amount"]
+CS_X = config["cs_coords"]["x"]
+CS_Y = config["cs_coords"]["y"]
 
 class DirtyShelf:
     __rows: int
@@ -79,8 +81,10 @@ class CleanDispenser:
     __x: float
     __y: float
 
-    def __init__(self, amount: int):
+    def __init__(self, amount: int, x: float, y: float):
         self.__amount = amount
+        self.__x = x
+        self.__y = y
 
     def remove_one(self):
         if self.is_empty():
@@ -99,7 +103,7 @@ class CleanDispenser:
         return [self.__x, self.__y]
     
 ds = DirtyShelf(ROWS, COLS, X, Y, DX, DY)
-cs = CleanDispenser(AMOUNT)
+cs = CleanDispenser(AMOUNT, CS_X, CS_Y)
 
 def main():
     ds.add_one(0, 0)

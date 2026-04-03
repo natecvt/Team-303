@@ -1,6 +1,3 @@
-angle_0: 0
-angle_15: 15
-angle_90: 90
 axis_x_max: 2740.0
 axis_y_max: 1220.0
 axis_z_max: 420.0
@@ -18,19 +15,16 @@ camera_transform_coeffs:
 - arm_center_x: null
 - arm_center_y: null
 - arm_center_z: null
-clamp: 2000
+
 clean_plate_axis: V
 clean_plate_distance: 200.0
-clean_x: 190
-clean_y: 200
 cs_amount: 64
 cs_coords:
-  x: 0.5
-  y: 0.4
+  x: 2350.0
+  y: 705.0
+cs_grab_z: 345.0
 cs_tag_id: 0
-door_open_x: 0
-door_open_y: 0
-door_radius: 0
+
 ds_amount_per: 4
 ds_angle: -13.0
 ds_cols: 7
@@ -40,25 +34,25 @@ ds_coords:
 ds_dx: 278.0
 ds_dy: -80.0
 ds_cols_coords:
-- 1:
+  1:
     x: 0.1
     y: 0.1
-- 2:
+  2:
     x: 0.1
     y: 0.1
-- 3:
+  3:
     x: 0.1
     y: 0.1
-- 4:
+  4:
     x: 0.1
     y: 0.1
-- 5:
+  5:
     x: 0.1
     y: 0.1
-- 6:
+  6:
     x: 0.1
     y: 0.1
-- 7:
+  7:
     x: 0.1
     y: 0.1
 ds_cols_tag_ids:
@@ -70,22 +64,41 @@ ds_cols_tag_ids:
   69: 6
   70: 7
 ds_rows: 4
+
 gripper_axis: U
 gripper_down: 10.0
 gripper_up: 9.0
 
-manipulator_angle_0: 900
-manipulator_angle_90: 100
+manipulator_angle_0: 875.0
+manipulator_angle_90: 100.0
+manipulator_angle_n12: 925.0
 
-handle_x: 0
-handle_y: 0
-handle_z: 0
+door_z: 400.0
+door_into_y: 35.0
+door_close_x_offset: 15.0
+door_radius: 310.0
+door_open_delta:
+  x: -340.0
+  y: 0.0
+  z: -285.0
+door_close_delta:
+  x: 320.0
+  y: 0.0
+  z: 288.0
+door_to_plate_delta:
+  x: -160.0
+  y: -50.0
+  z: 0.0
+
+
 linuxcnc_folder: linuxCNC/team303_machine.ini
-linuxcnc_timeout: 120.0
+linuxcnc_timeout: 240.0
+
 mqtt_broker_ip: localhost
 mqtt_complete_topic: test/complete
 mqtt_error_topic: test/error
 mqtt_received_topic: test/topic
+
 printer_number: 12
 printer_tag_ids:
   1: 1
@@ -100,7 +113,6 @@ printer_tag_ids:
   10: 10
   11: 11
   12: 12
-unclamp: 1000
 printer_coords:
     1: 
         x: 0.1
@@ -138,3 +150,5 @@ printer_coords:
     12:
         x: 0.1
         y: 0.1
+
+printer_plate_z: 375.0

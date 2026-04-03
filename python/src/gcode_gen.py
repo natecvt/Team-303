@@ -1,43 +1,47 @@
 from types import MappingProxyType
 
 gcode_template = {
-    0 : ["G00 Xx Yy Zz\n", (1, 2, 3)], # rapid positioning
-    1 : ["G01 Xx Yy Zz Aa Ff\n", (1, 2, 3, 4, 5)], # fed move
-    2 : ["G02 Xx Yy Zz Rr\n", (2, 3)], # clockwise arc
-    3 : ["G03 Xx Yy Zz Rr\n", (2, 3)], # counterclockwise arc
-    4 : ["G04 Pp\n", (1,)], # dwell
+    0 : ["G00 Xx Yy Zz", (1, 2, 3)], # rapid positioning
+    1 : ["G01 Xx Yy Zz Aa Ff", (1, 2, 3, 4, 5)], # fed move
+    2 : ["G02 Xx Yy Zz Rr Ff", (2, 3, 4, 5)], # clockwise arc
+    3 : ["G03 Xx Yy Zz Rr Ff", (2, 3, 4, 5)], # counterclockwise arc
+    4 : ["G04 Pp", (1,)], # dwell
 
-    20 : ["G20\n", (0,)], # set units to inches
-    21 : ["G21\n", (0,)], # set units to mm
+    17 : ["G17", (0,)], # set to xy interp
+    18 : ["G18", (0,)], # set to xz interp
+    19 : ["G19", (0,)], # set to zy interp
 
-    54 : ["G54 Xx Yy Zz\n", (1, 2, 3)], # work coordinate system 1
+    20 : ["G20", (0,)], # set units to inches
+    21 : ["G21", (0,)], # set units to mm
 
-    61 : ["G61\n", (0,)], # exact stop check
-    61.1 : ["G61.1\n", (0,)], # continuous path mode
+    54 : ["G54 Xx Yy Zz", (1, 2, 3)], # work coordinate system 1
 
-    90 : ["G90\n", (0,)], # absolute programming
-    91 : ["G91\n", (0,)], # incremental programming
-    92 : ["G92 Xx Yy Zz\n", (1, 2, 3)], # set position
-    92.1 : ["G92.1\n", (0,)], # reset G92 position to actual zero
-    93 : ["G93\n", (0,)], # inverse time feed rate
-    94 : ["G94\n", (0,)], # units per minute feed rate
-    95 : ["G95\n", (0,)], # units per revolution feed rate
+    61 : ["G61", (0,)], # exact stop check
+    61.1 : ["G61.1", (0,)], # continuous path mode
+
+    90 : ["G90", (0,)], # absolute programming
+    91 : ["G91", (0,)], # incremental programming
+    92 : ["G92 Xx Yy Zz", (1, 2, 3)], # set position
+    92.1 : ["G92.1", (0,)], # reset G92 position to actual zero
+    93 : ["G93", (0,)], # inverse time feed rate
+    94 : ["G94", (0,)], # units per minute feed rate
+    95 : ["G95", (0,)], # units per revolution feed rate
 }
 gcode_template = MappingProxyType(gcode_template) # make immutable
 
 mcode_template = {
-    0 : ["M00\n", (0,)], # pause
-    1 : ["M01\n", (0,)], # optional pause
-    2 : ["M02\n", (0,)], # end of program
-    3 : ["M03 Ss\n", (1,)], # spindle on clockwise
-    4 : ["M04 Ss\n", (1,)], # spindle on counterclockwise
-    5 : ["M05\n", (0,)], # spindle stop
+    0 : ["M00", (0,)], # pause
+    1 : ["M01", (0,)], # optional pause
+    2 : ["M02", (0,)], # end of program
+    3 : ["M03 Ss", (1,)], # spindle on clockwise
+    4 : ["M04 Ss", (1,)], # spindle on counterclockwise
+    5 : ["M05", (0,)], # spindle stop
 
-    61 : ["M61 Qq\n", (1,)], # tool change with tool number Q
-    66 : ["M66 Pp Ll Qq\n", (2, 3)], # wait for input
+    61 : ["M61 Qq", (1,)], # tool change with tool number Q
+    66 : ["M66 Pp Ll Qq", (2, 3)], # wait for input
 
-    100 : ["M100 Pp Qq Rr\n", (1, 2, 3)], # user-defined actuator command placeholder
-    101 : ["M101 Pp Qq Rr\n", (1, 2, 3)], # user-defined actuator command placeholder
+    100 : ["M100 Pp Qq Rr", (1, 2, 3)], # user-defined actuator command placeholder
+    101 : ["M101 Pp Qq Rr", (1, 2, 3)], # user-defined actuator command placeholder
 }
 mcode_template = MappingProxyType(mcode_template) # make immutable
 
