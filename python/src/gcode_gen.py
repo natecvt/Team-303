@@ -1,8 +1,8 @@
 from types import MappingProxyType
 
 gcode_template = {
-    0 : ["G00 Xx Yy Zz", (1, 2, 3)], # rapid positioning
-    1 : ["G01 Xx Yy Zz Aa Ff", (1, 2, 3, 4, 5)], # fed move
+    0 : ["G00 Xx Yy Zz Uu Vv", (1, 2, 3, 4, 5)], # rapid positioning
+    1 : ["G01 Xx Yy Zz Uu Vv Ff", (1, 2, 3, 4, 5, 6)], # fed move
     2 : ["G02 Xx Yy Zz Rr Ff", (2, 3, 4, 5)], # clockwise arc
     3 : ["G03 Xx Yy Zz Rr Ff", (2, 3, 4, 5)], # counterclockwise arc
     4 : ["G04 Pp", (1,)], # dwell
@@ -17,12 +17,12 @@ gcode_template = {
     54 : ["G54 Xx Yy Zz", (1, 2, 3)], # work coordinate system 1
 
     61 : ["G61", (0,)], # exact stop check
-    61.1 : ["G61.1", (0,)], # continuous path mode
+    611 : ["G61.1", (0,)], # continuous path mode
 
     90 : ["G90", (0,)], # absolute programming
     91 : ["G91", (0,)], # incremental programming
     92 : ["G92 Xx Yy Zz", (1, 2, 3)], # set position
-    92.1 : ["G92.1", (0,)], # reset G92 position to actual zero
+    921 : ["G92.1", (0,)], # reset G92 position to actual zero
     93 : ["G93", (0,)], # inverse time feed rate
     94 : ["G94", (0,)], # units per minute feed rate
     95 : ["G95", (0,)], # units per revolution feed rate
@@ -79,10 +79,10 @@ def generate_code(command_args: dict, command_type: int, is_gcode = True) -> str
     return code
 
 def main():
-    c1_args = {'x': 10.0, 'z': 5.4}
+    c1_args = {'u': 10.0, 'z': 5.4}
     print(generate_code(c1_args, 0))
     c2_args = {'x': 10.0, 'y': 23.4}
-    print(generate_code(c2_args, 1, True))
+    print(generate_code({'u': 1.0}, 1, True))
     c3_args = {}
     print(generate_code(c3_args, 2, False))
 

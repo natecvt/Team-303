@@ -2,6 +2,7 @@ import subprocess
 import sys
 import time
 from config import config
+import gantry_actions as ga
 
 try:
     import linuxcnc
@@ -162,8 +163,14 @@ def main():
         exit(1)
     
     if (home_all_axes()):
-        send_mdi_line("G01 X00 Y00 F1500")
+        send_mdi_line("G92.1")
         print("Sample MDI sucessful")
+        send_mdi_line("G0 X1815 Y0 Z0")
+        send_mdi_line("G92 X0 Y0 Z0")
+        
+        code = ga.gcode_grab_plate(340.0, check_z_is_zero(), 800)
+        multiline_mdi_loop(code)
+
 
 if __name__ == "__main__":
     main()

@@ -45,10 +45,13 @@ def set_zero(z_is_zero: bool, feed_rate=1500) -> list[str]:
 
     code.append(gg.generate_code({'x': 0.0, 'y': 0.0}, 92))
 
+    return code
+
 def reset_zero() -> list[str]:
     code = []
 
-    code.append(gg.generate_code({}, 92.1))
+    code.append(gg.generate_code({}, 921))
+    return code
     
 def gcode_generic_move(x: float, y: float, z_is_zero: bool, feed_rate=1500) -> list[str]:
     code = []
@@ -90,7 +93,8 @@ def gcode_grab_plate(z_dist: float, z_is_zero: bool, feed_rate=1500) -> list[str
     # make sure z is zero before moving servo
     if not z_is_zero: 
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
-
+    code.append(gg.generate_code({}, 91))
+    code.append(gg.generate_code({'x': DOOR_PLATE_DEL['x'], 'y': DOOR_PLATE_DEL['y'], 'f': feed_rate}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_N12}, 3, False))
     code.append(gg.generate_code({'z': z_dist, 'f': feed_rate}, 1))
     # G91 for relative moves on U or V axes
@@ -98,6 +102,7 @@ def gcode_grab_plate(z_dist: float, z_is_zero: bool, feed_rate=1500) -> list[str
     code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN}, 1))
     code.append(gg.generate_code({}, 90))
 
+    code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
     code.append(gg.generate_code({'z': 0.0}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))
     # add up commands here
@@ -116,7 +121,7 @@ def gcode_release_plate(z_dist: float, z_is_zero: bool, feed_rate=1500) -> list[
     
     # relative moves for U or V axes
     code.append(gg.generate_code({}, 91))
-    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP}, 1))
+    code.append(gg.generate_code({'u': GRIP_UP, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 90))
 
     code.append(gg.generate_code({'z': 0.0}, 1))
@@ -192,7 +197,7 @@ def clean_plate_prime(feed_rate=1500) -> list[str]:
     code = []
 
     code.append(gg.generate_code({}, 91))
-    code.append(gg.generate_code({CS_AXIS: CS_DIST, 'f': feed_rate}))
+    code.append(gg.generate_code({CS_AXIS: CS_DIST, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 90))
 
     return code
@@ -201,6 +206,9 @@ def main():
     print(gcode_open_door(False))
     print("\n")
     print(gcode_close_door(True))
+    print("\n")
+    print(gcode_grab_plate(50.0, True))
+    print("\n")
 
 
 if __name__ == "__main__":
