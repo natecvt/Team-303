@@ -151,4 +151,4 @@ printer_coords:
         x: 0.1
         y: 0.1
 
-printer_plate_z: 340.0
+printer_plate_z: 330.0

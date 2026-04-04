@@ -68,22 +68,26 @@ def gcode_move_to_printer(printer_number: int, z_is_zero: bool, feed_rate=1500) 
     coords = read_printer_coords(printer_number)
     code = []
 
+    code.append(gg.generate_code({}, 921))
     # set z zero before doing global moves
     if not z_is_zero:
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
 
     code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))
     code.append(gg.generate_code({'x': coords['x'], 'y': coords['y'], 'f': feed_rate}, 1))
+    code.append(gg.generate_code({}, 92))
 
     return code
 
 def gcode_move_to_home(z_is_zero: bool, feed_rate=1500) -> list[str]:
     code = []
 
+    code.append(gg.generate_code({}, 921))
     if not z_is_zero:
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
 
     code.append(gg.generate_code({'x': 0.0, 'y': 0.0, 'f': feed_rate}, 1))
+    
     return code
 
 # can apply to grabbing from cs or printer
@@ -121,7 +125,7 @@ def gcode_release_plate(z_dist: float, z_is_zero: bool, feed_rate=1500) -> list[
     
     # relative moves for U or V axes
     code.append(gg.generate_code({}, 91))
-    code.append(gg.generate_code({'u': GRIP_UP, 'f': feed_rate}, 1))
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 90))
 
     code.append(gg.generate_code({'z': 0.0}, 1))
@@ -178,7 +182,7 @@ def gcode_close_door(z_is_zero: bool, feed_rate=900) -> list[str]:
     code.append(gg.generate_code({}, 91))
     code.append(gg.generate_code({'y': DOOR_Y_ENG, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 18))
-    code.append(gg.generate_code({'x': DOOR_CLOSE_DEL["x"], 
+    code.append(gg.generate_code({'x': DOOR_CLOSE_DEL["x"],
                                   'z': DOOR_CLOSE_DEL["z"],
                                   'r': DOOR_RADIUS,
                                   'f': feed_rate}, 2))

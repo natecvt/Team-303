@@ -24,9 +24,20 @@ class ManipulatorSM(StateMachine):
         print(self.configuration)
         pass
     
-    def plate_grab(self) -> bool:
+    def plate_grab(self, p) -> bool:
+        if not (p.require_position(p.Printer)):
+            return False
+
         # if clamp not open
         #   open clamp
+        if li.ok_for_mdi():
+            move = ga.gcode_open_door()
+            if not (li.multiline_mdi_loop(move)):
+                return False
+            
+        if li.ok_for_mdi():
+            move = ga.gcode_grab_plate()
+        
         # open door gcode
         # rotate -15° gcode
         # do plate grab moves
@@ -146,10 +157,13 @@ class PositionSM(StateMachine):
         
         [x, y] = ds.coords_first_free()
 
+        if not (m.require_manipulator(ManipulatorSM.Full)):
+            return False
+
         if li.ok_for_mdi():
             move = ga.gcode_generic_move(x, y)
 
-            if li.send_mdi_line(move):
+            if li.multiline_mdi_loop(move):
                 return True
             
         return False
@@ -158,12 +172,15 @@ class PositionSM(StateMachine):
         if (cs.is_empty()):
             return False
         
+        if not (m.require_manipulator(ManipulatorSM.Empty)):
+            return False
+        
         [x, y] = cs.get_origin()
 
         if li.ok_for_mdi():
             move = ga.gcode_generic_move(x, y)
 
-            if li.send_mdi_line(move):
+            if li.multiline_mdi_loop(move):
                 return True
             
         return False
@@ -186,7 +203,7 @@ def main():
     m.clean()
     print(ManipulatorSM.Clean in m.configuration)
 
-    print(m.require_manipulator(ManipulatorSM.Clean))
+    print(m.require_manipulator(m.Clean))
 
 if __name__ == "__main__":
     main()
