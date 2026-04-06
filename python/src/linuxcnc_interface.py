@@ -69,6 +69,7 @@ def set_state_active() -> bool:
     return False
 
 def home_all_axes() -> bool:
+    # TODO: wrap mode changes into this function
     if (s == None or c == None):
         print("Stat or Command channels not initialized")
         return False

@@ -28,53 +28,57 @@ class ManipulatorSM(StateMachine):
         if not (p.require_position(p.Printer)):
             return False
 
-        # if clamp not open
-        #   open clamp
         if li.ok_for_mdi():
-            move = ga.gcode_open_door()
+            move = ga.gcode_open_door(False)
             if not (li.multiline_mdi_loop(move)):
                 return False
             
         if li.ok_for_mdi():
-            move = ga.gcode_grab_plate()
-        
-        # open door gcode
-        # rotate -15° gcode
-        # do plate grab moves
-        # close door
-        pass
+            move = ga.gcode_grab_plate_printer(False)
+            if not (li.multiline_mdi_loop(move)):
+                return False
+            
+        if li.ok_for_mdi():
+            move = ga.gcode_close_door(False)
+            if not (li.multiline_mdi_loop(move)):
+                return False
+            
+        return True
     
-    def plate_release(self, ds) -> bool:
-        dp_loc_idx = [0,0]
-        # if clamp open
-        # why?
-        dp_loc_idx = ds.detect_first_free()
-        
-        # find dps position
-        # do plate release moves
-        # move out
-        pass
+    def plate_release(self, p) -> bool:
 
-    def clean_grab():
-        p.require_position(p.CleanS)
-        if cs.is_empty():
+        if not (p.require_position(p.DirtyS)):
             return False
-        manipulator_clamp = False
-        manipulator_degree = 0
-        code = ga.gcode_grab_clean()
-        manipulator_degree = 90
+
+        if li.ok_for_mdi():
+            move = ga.gcode_release_plate_ds(False)
+            if not (li.multiline_mdi_loop(move)):
+                return False
+        
+        return True
+
+    def clean_grab(self, p) -> bool:
+        if not (p.require_position(p.DirtyS)):
+            return False
+        
+        if li.ok_for_mdi():
+            move = ga.gcode_grab_plate_cs(False)
+            if not (li.multiline_mdi_loop(move)):
+                return False
+        
+        return True
 
 
-    def clean_release():
-        p.require_position(p.Printer)
-        if manipulator_degree == 90:
-            code = ga.gcode_open_door()
-        manipulator_degree = -15
-        code = ga.gcode_move_printer()
-        manipulator_clamp = False
-        code = ga.gcode_out_printer()
-        manipulator_degree = 90
-        code = ga.gcode_close_door()
+    def clean_release(self, p) -> bool:
+        if not (p.require_position(p.Printer)):
+            return False
+        
+        if li.ok_for_mdi():
+            move = ga.gcode_release_plate_printer(False)
+            if not (li.multiline_mdi_loop(move)):
+                return False
+        
+        return True
 
         
 class PositionSM(StateMachine):
@@ -106,6 +110,9 @@ class PositionSM(StateMachine):
         if not (li.check_spindle(config["angle_90"])):
             return False
         
+        if not (li.check_z_is_zero()):
+            return False
+        
         if li.ok_for_mdi():
 
             move = ga.gcode_move_to_printer(number)
@@ -122,6 +129,12 @@ class PositionSM(StateMachine):
         if not (li.check_spindle(config["angle_90"])):
             return False
         
+        if not (li.check_z_is_zero()):
+            return False
+        
+        li.c.mode(li.linuxcnc.MODE_MANUAL)
+        li.c.wait_complete()
+
         if li.home_all_axes():
             return True
         
@@ -134,6 +147,12 @@ class PositionSM(StateMachine):
         if not (li.check_spindle(config["angle_90"])):
             return False
         
+        if not (li.check_z_is_zero()):
+            return False
+        
+        li.c.mode(li.linuxcnc.MODE_MANUAL)
+        li.c.wait_complete()
+
         if li.home_all_axes():
             return True
         
@@ -146,6 +165,12 @@ class PositionSM(StateMachine):
         if not (li.check_spindle(config["angle_90"])):
             return False
         
+        if not (li.check_z_is_zero()):
+            return False
+        
+        li.c.mode(li.linuxcnc.MODE_MANUAL)
+        li.c.wait_complete()
+
         if li.home_all_axes():
             return True
         
@@ -155,13 +180,13 @@ class PositionSM(StateMachine):
         if (ds.is_full()):
             return False
         
-        [x, y] = ds.coords_first_free()
+        [r, c] = ds.detect_first_free()
 
         if not (m.require_manipulator(ManipulatorSM.Full)):
             return False
 
         if li.ok_for_mdi():
-            move = ga.gcode_generic_move(x, y)
+            move = ga.gcode_move_to_ds(r, c, False)
 
             if li.multiline_mdi_loop(move):
                 return True
@@ -201,9 +226,7 @@ def main():
 
     m.release()
     m.clean()
-    print(ManipulatorSM.Clean in m.configuration)
-
-    print(m.require_manipulator(m.Clean))
+    
 
 if __name__ == "__main__":
     main()
