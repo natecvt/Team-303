@@ -8,10 +8,12 @@ import json_msg_parser as js
 import gantry_actions as ga
 
 def main_loop():
+    err_flag = False
+
     while True:
         if (mq.recieved_q.all_tasks_done):
             li.time.sleep(10.0)
-            print("queue empty")
+            print("Queue empty")
             continue
         
         

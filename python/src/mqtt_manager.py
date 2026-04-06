@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as pub
+from mqtt_send_types import Error, SwapComplete
 import json_msg_parser as jmp
 from pathlib import Path
 import queue
@@ -15,8 +16,10 @@ except:
 TOPIC_R: str = config["mqtt_received_topic"]
 TOPIC_E: str = config["mqtt_error_topic"]
 TOPIC_C: str = config["mqtt_complete_topic"]
-
 MQTT_IP: str = config["mqtt_broker_ip"]
+
+error_message = Error()
+sc_message = SwapComplete()
 
 recieved_q = queue.Queue()
 send_q = queue.Queue()
@@ -49,21 +52,20 @@ def connect(host, port=1883, ka=60):
         print(f"Connection failed with error code: {errc}")
         return False
     return True
-    
-def publish_error(msg, host: str, port=1883, ka=60):
-    pub.single(TOPIC_E, payload=msg, hostname=host, port=port, keepalive=ka)
-    pass
 
-def publish_complete(msg, host: str, port=1883, ka=60):
+# can be done on the worker thread, since this does not require a loop_forever() call
+def publish_error(msg=str(error_message), host=MQTT_IP, port=1883, ka=60):
+    pub.single(TOPIC_E, payload=msg, hostname=host, port=port, keepalive=ka)
+
+# can be done on the worker thread, since this does not require a loop_forever() call
+def publish_complete(msg=str(sc_message), host=MQTT_IP, port=1883, ka=60):
     pub.single(TOPIC_C, payload=msg, hostname=host, port=port, keepalive=ka)
-    pass
 
 def main():
     if (assign_callbacks(on_message, on_connect)):
         connect("localhost")
         mqttc.loop_forever()
     
-    exit(1)
 
 if __name__ == "__main__":
     main()

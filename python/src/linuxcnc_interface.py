@@ -13,16 +13,18 @@ except:
 LCNC_PATH: str = config["linuxcnc_folder"]
 LCNC_MOTION_TIMEOUT: float = config["linuxcnc_timeout"]
 
-ZERO_TOLERANCE: float = 2.0 # mm
+ZERO_TOLERANCE: float = 1.0 # mm
 
 lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
-time.sleep(10.0) # sleep for a minute to give linuxcnc ample time to start
-
+time.sleep(10.0) # sleep for a bit to give linuxcnc ample time to start
 
 s = linuxcnc.stat()
 c = linuxcnc.command()
+e = linuxcnc.error_channel()
 
 c.teleop_enable(False)
+c.wait_complete()
+
 s.poll()
 
 ini = linuxcnc.ini(s.ini_filename)
@@ -45,6 +47,26 @@ def open_linuxcnc() -> bool:
             print(x, getattr(s,x))
 
     return True
+
+def set_state_resting() -> bool:
+    c.state(linuxcnc.STATE_OFF)
+    c.wait_complete()
+
+    if s.task_state == linuxcnc.STATE_OFF:
+        print("Resting")
+        return True
+    
+    return False
+
+def set_state_active() -> bool:
+    c.state(linuxcnc.STATE_ON)
+    c.wait_complete()
+
+    if s.task_state == linuxcnc.STATE_ON:
+        print("Returning to Idle")
+        return home_all_axes()
+    
+    return False
 
 def home_all_axes() -> bool:
     if (s == None or c == None):
@@ -86,9 +108,20 @@ def ok_for_mdi() -> bool:
     s.poll()
     return not s.estop and s.enabled and (s.homed.count(1) == s.joints) and (s.interp_state == linuxcnc.INTERP_IDLE)
 
-def handle_not_ok() -> bool:
+def handle_errors() -> bool:
+    err = e.poll()
     s.poll()
+    if not err and not s.estop:
+        return True
+    
+    rc = False
 
+    c.abort()
+
+    kind, text = err
+    print(f"Error: {text}")
+
+    # handling e-stop
     if (s.estop):
         print("EStop triggered, waiting until further action")
         while True:
@@ -96,50 +129,84 @@ def handle_not_ok() -> bool:
                 break
             s.poll()
             time.sleep(1.0)
-
+        rc = True
         print("EStop unpressed, returning to regular operation")
     
-    if (not s.enabled):
-        print("Trajectory planner disabled, ")
+    # handling not enabled (power off)
+    if not (s.enabled):
+        rc = False
+        c.state(linuxcnc.STATE_ON)
+        c.wait_complete()
+        rc = True
 
-        #TODO: handle this error
+    # handling not homed, z should home first
+    if not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count())):
+        rc = False
+        c.mode(linuxcnc.MODE_MANUAL)
+        c.wait_complete()
+        if home_all_axes():
+            rc = True
 
-    if (not (s.interp_state == linuxcnc.INTERP_IDLE) and not (s.interp_state == linuxcnc.INTERP_WAITING)):
-        print("Interpreter in odd state for no motion, checking further")
-        if (s.interpreter_errcode == linuxcnc.INTERP_ERROR):
-            print("Interpreter in err state, handling")
+    # handling wrong mode
+    if not (s.task_mode == linuxcnc.MODE_MDI):
+        rc = False
+        c.mode(linuxcnc.MODE_MDI)
+        c.wait_complete()
+        rc = True
 
-            #TODO: handle this error
+    # handling interpreter errors
+    if (s.interpreter_errcode == linuxcnc.INTERP_ERROR):
+        rc = False
+        c.reset_interpreter()
+        c.wait_complete()
+        rc = True
+    
 
-    return True
+    return rc
 
+# send single-line MDI command
+# return codes listed below:
+# 0: no errors, normal
+# 1: error in state retry currently impossible
+# 2: errors handled, retry possible
+def send_mdi_line(code: str) -> int:
+    rc = 0
 
-def send_mdi_line(code: str) -> bool:
     if ok_for_mdi(): # polls inside function
         c.mode(linuxcnc.MODE_MDI)
         c.wait_complete()
-        #TODO: detect whether move would exceed axes
         c.mdi(code) # send mdi commands
-        rc = c.wait_complete(LCNC_MOTION_TIMEOUT)
-        if (rc == -1 or rc == linuxcnc.RCS_ERROR):
+        crc = c.wait_complete(LCNC_MOTION_TIMEOUT)
+        if (crc == -1 or crc == linuxcnc.RCS_ERROR):
+            rc = 1
             print("MDI code failed")
-            return False
 
     else:
-        return False
+        print("Not ok for MDI commands")
+        rc = 1
     
-    if handle_not_ok():
-        return True
+    if handle_errors():
+        rc = 2
     
-    print("Unhandled error caught")
-    return False
+    return rc
 
 def multiline_mdi_loop(codes: list[str]) -> bool:
     for code in codes:
-        if (send_mdi_line(code)):
+        rc = send_mdi_line(code)
+        if (rc == 0):
             continue
-        print("MDI Line Failed: " + code)
-        return False
+
+        if (rc == 1):
+            print("MDI Line Failed: " + code)
+            return False
+
+        if (rc == 2):
+            print("MDI Line Failed: " + code)
+            print("Retrying...")
+            if (send_mdi_line(code) == 0):
+                continue
+
+            return False
     return True
 
 def check_spindle(speed: int) -> bool:
