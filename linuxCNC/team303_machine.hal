@@ -80,8 +80,10 @@ loadrt stepgen step_type=0,0,0,0,0
 
 addf stepgen.make-pulses base-thread
 loadrt sum2 count=1
-loadrt not count=1
+loadrt not count=2
 
+addf not.0 servo-thread
+addf not.1 servo-thread
 addf stepgen.capture-position servo-thread
 addf motion-command-handler servo-thread
 addf motion-controller servo-thread
@@ -182,6 +184,9 @@ net servo-output pwmgen.0.pwm => hal_gpio.GPIO18-out
 
 
 net xenable => hal_gpio.GPIO26-out
+net xenable => not.0.in
+net oenable not.0.out
+net oenable => hal_gpio.GPIO24-out
 
 net xstep	=> hal_gpio.GPIO9-out 
 net xdir	=> hal_gpio.GPIO10-out
@@ -192,7 +197,7 @@ net zdir	=> hal_gpio.GPIO19-out
 net ustep	=> hal_gpio.GPIO17-out
 net udir	=> hal_gpio.GPIO23-out
 net vstep	=> hal_gpio.GPIO27-out 
-net vdir	=> hal_gpio.GPIO24-out
+#net vdir	=> hal_gpio.GPIO24-out
 
 
 
@@ -214,6 +219,7 @@ net min-home-y	<= hal_gpio.GPIO12-in
 net min-home-z	<= hal_gpio.GPIO13-in
 #net all-limit   <= hal_gpio.GPIO8-in
 #pin 22 (GPIO25) is the eSTOP
+net estop-ext <= hal_gpio.GPIO25-in-not
 
 #net X-home hal_pi_gpio.pin-22-in => axis.0.home-sw-in axis.0.neg-lim-sw-in
 #net Y-home hal_pi_gpio.pin-24-in => axis.1.home-sw-in axis.1.neg-lim-sw-in
@@ -305,7 +311,7 @@ setp stepgen.4.maxaccel [JOINT_4]STEPGEN_MAXACCEL
 net vpos-cmd joint.4.motor-pos-cmd => stepgen.4.position-cmd
 net vpos-fb stepgen.4.position-fb => joint.4.motor-pos-fb
 net vstep <= stepgen.4.step
-net vdir <= stepgen.4.dir
+# net vdir <= stepgen.4.dir
 net venable joint.4.amp-enable-out => stepgen.4.enable
 net min-home-v => joint.4.home-sw-in
 
@@ -315,8 +321,8 @@ net all-limit => joint.4.pos-lim-sw-in
 
 net estop-out <= iocontrol.0.user-enable-out
 #customer note: use estop-ext instead of estop-out in the next statement
-#net estop-ext => iocontrol.0.emc-enable-in
-net estop-out => iocontrol.0.emc-enable-in
+net estop-ext => iocontrol.0.emc-enable-in
+#net estop-out => iocontrol.0.emc-enable-in
 
 loadusr -W hal_manualtoolchange
 net tool-change iocontrol.0.tool-change => hal_manualtoolchange.change

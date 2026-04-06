@@ -147,16 +147,19 @@ def gcode_grab_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z,  feed_rate=
     
     code.append(gg.generate_code({}, 91))
     code.append(gg.generate_code({'x': DOOR_PLATE_DEL['x'], 'y': DOOR_PLATE_DEL['y'], 'f': feed_rate}, 1))
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP, 'f': feed_rate}, 1))
+
     code.append(gg.generate_code({'s': MAN_ANGLE_N12}, 3, False))
     code.append(gg.generate_code({'z': z_dist, 'f': feed_rate}, 1))
-    # G91 for relative moves on U or V axes
-    code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN}, 1))
+
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN,  'f': feed_rate / 10.0}, 1))
+
     code.append(gg.generate_code({}, 90))
 
     code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
-    code.append(gg.generate_code({'z': 0.0}, 1))
+    code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))
-    # add up commands here
+    
     return code
 
 def gcode_release_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z, feed_rate=750) -> list[str]:
@@ -165,20 +168,23 @@ def gcode_release_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z, feed_rat
     # make sure z is zero before moving servo
     if not z_is_zero: 
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
-
-    # G91 for relative moves on U or V axes and relative from zero
-    code.append(gg.generate_code({}, 91))
+    
     code.append(gg.generate_code({'x': DOOR_PLATE_DEL['x'], 'y': DOOR_PLATE_DEL['y'], 'f': feed_rate}, 1))
+    code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
+    code.append(gg.generate_code({'z': 3.0 * z_dist / 4.0, 'f': feed_rate}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_N12}, 3, False))
     code.append(gg.generate_code({'z': z_dist, 'f': feed_rate}, 1))
     
+    code.append(gg.generate_code({}, 91))
     code.append(gg.generate_code({GRIP_AXIS: GRIP_UP}, 1))
-
     code.append(gg.generate_code({}, 90))
 
-    code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
     code.append(gg.generate_code({'z': 0.0}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))
+
+    code.append(gg.generate_code({}, 91))
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN}, 1))
+    code.append(gg.generate_code({}, 90))
 
     # return to home
     code.extend(gcode_move_to_home(True, feed_rate))
@@ -193,7 +199,7 @@ def gcode_open_door(z_is_zero: bool, feed_rate=900) -> list[str]:
     #G90 should be active on entry
 
     # send to currently set zero, if not already there
-    code.extend(gcode_move_to_home(z_is_zero))
+    code.extend(gcode_move_to_home(z_is_zero, feed_rate))
 
     # move peg under handle
     code.append(gg.generate_code({'z': DOOR_Z, 'f': feed_rate}, 1))
@@ -208,11 +214,12 @@ def gcode_open_door(z_is_zero: bool, feed_rate=900) -> list[str]:
                                   'r': DOOR_RADIUS,
                                   'f': feed_rate}, 3))
     # lower to disengage
+    code.append(gg.generate_code({'x': DOOR_CLOSE_X_OFFSET, 'f': feed_rate}, 1))
     code.append(gg.generate_code({'y': -DOOR_Y_ENG, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 90))
     # move back
     code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
-    code.extend(gcode_move_to_home(True))
+    code.extend(gcode_move_to_home(True, feed_rate))
     
     return code
 
@@ -228,7 +235,7 @@ def gcode_close_door(z_is_zero: bool, is_second: bool, feed_rate=900) -> list[st
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
 
     # start z below handle
-    code.append(gg.generate_code({'x': DOOR_OPEN_DEL['x'] + DOOR_CLOSE_X_OFFSET, 'f': feed_rate}, 1))
+    code.append(gg.generate_code({'x': DOOR_OPEN_DEL['x'] + DOOR_CLOSE_X_OFFSET, 'y': 0.0, 'f': feed_rate}, 1))
     code.append(gg.generate_code({'z': DOOR_Z + DOOR_OPEN_DEL["z"], 'f': feed_rate}, 1))
 
     code.append(gg.generate_code({}, 91))
@@ -269,10 +276,14 @@ def gcode_release_plate_ds(z_is_zero: bool, z_dist=DS_RELEASE_Z, y_dist=DS_RELEA
     code.append(gg.generate_code({}, 91))
     code.append(gg.generate_code({'s': MAN_ANGLE_N12}, 3, False))
     code.append(gg.generate_code({'y': y_dist, 'f': feed_rate}, 1))
-    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP}, 1))
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 90))
     code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))
+
+    code.append(gg.generate_code({}, 91))
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN, 'f': feed_rate}, 1))
+    code.append(gg.generate_code({}, 90))
 
     # finished dirty plate actions for cycle
     code.extend(reset_zero())
@@ -287,8 +298,7 @@ def gcode_grab_plate_cs(z_is_zero: bool, z_dist=CS_GRAB_Z, feed_rate=750) -> lis
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
 
     code.append(gg.generate_code({}, 91))
-    code.append(gg.generate_code({CS_AXIS: CS_DIST, 'f': feed_rate}, 1))
-    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP}, 1))
+    code.append(gg.generate_code({GRIP_AXIS: GRIP_UP, CS_AXIS: CS_DIST, 'f': feed_rate}, 1))
     code.append(gg.generate_code({}, 90))
     code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
     code.append(gg.generate_code({'z': z_dist, 'f': feed_rate}, 1))
@@ -296,6 +306,7 @@ def gcode_grab_plate_cs(z_is_zero: bool, z_dist=CS_GRAB_Z, feed_rate=750) -> lis
     code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN}, 1))
     code.append(gg.generate_code({}, 90))
     code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
+    code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))
 
     # finished dirty plate actions for cycle
     code.extend(reset_zero())

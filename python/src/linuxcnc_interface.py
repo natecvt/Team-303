@@ -52,6 +52,8 @@ def set_state_resting() -> bool:
     c.state(linuxcnc.STATE_OFF)
     c.wait_complete()
 
+    s.poll()
+    time.sleep(2.0)
     if s.task_state == linuxcnc.STATE_OFF:
         print("Resting")
         return True
@@ -62,6 +64,8 @@ def set_state_active() -> bool:
     c.state(linuxcnc.STATE_ON)
     c.wait_complete()
 
+    s.poll()
+    time.sleep(2.0)
     if s.task_state == linuxcnc.STATE_ON:
         print("Returning to Idle")
         return home_all_axes()
@@ -78,6 +82,9 @@ def home_all_axes() -> bool:
     c.mode(linuxcnc.MODE_MANUAL)
     c.wait_complete()
 
+    c.teleop_enable(0)
+    c.wait_complete()
+
     s.poll()
     print("Releasing EStop")
     c.state(linuxcnc.STATE_ESTOP_RESET)
@@ -90,10 +97,12 @@ def home_all_axes() -> bool:
 
     s.poll()
     print("Homing...")
+    c.unhome(-1)
+    c.wait_complete()
     c.home(-1) # home all axes by INI configuration
 
     count = 0
-    while not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count())) and count < LCNC_MOTION_TIMEOUT * 10:
+    while (not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count()))) and count < LCNC_MOTION_TIMEOUT * 10:
         s.poll()
         time.sleep(0.1)
         count += 1
@@ -123,15 +132,13 @@ def handle_errors() -> bool:
 
     c.abort()
 
-    kind, text = err
-    print(f"Error: {text}")
+    #kind, text = err
+    #print(f"Error: {text}")
 
     # handling e-stop
     if (s.estop):
         print("EStop triggered, waiting until further action")
-        while True:
-            if not s.estop:
-                break
+        while s.estop:
             s.poll()
             time.sleep(1.0)
         rc = True
@@ -158,7 +165,7 @@ def handle_errors() -> bool:
         rc = True
 
     # handling interpreter errors
-    if (s.interpreter_errcode == linuxcnc.INTERP_ERROR):
+    if (s.interpreter_errcode == 1):
         rc = False
         c.reset_interpreter()
         c.wait_complete()
@@ -189,7 +196,7 @@ def send_mdi_line(code: str) -> int:
         rc = 1
     
     if handle_errors():
-        rc = 2
+        rc = 0
     
     return rc
 
@@ -205,10 +212,6 @@ def multiline_mdi_loop(codes: list[str]) -> bool:
 
         if (rc == 2):
             print("MDI Line Failed: " + code)
-            print("Retrying...")
-            if (send_mdi_line(code) == 0):
-                continue
-
             return False
     return True
 
@@ -234,12 +237,39 @@ def main():
     
     if (home_all_axes()):
         send_mdi_line("G92.1")
+        #set_state_resting()
+        #set_state_active()
         print("Sample MDI sucessful")
-        send_mdi_line("G0 X1815 Y0 Z0")
-        send_mdi_line("G92 X0 Y0 Z0")
-        
-        code = ga.gcode_grab_plate(340.0, check_z_is_zero(), 800)
+        code = ga.gcode_move_to_printer(2, False, feed_rate=4500)
         multiline_mdi_loop(code)
+        code = ga.gcode_open_door(check_z_is_zero(), feed_rate=2800)
+        multiline_mdi_loop(code)
+        code = ga.gcode_grab_plate_printer(True, feed_rate=4500)
+        multiline_mdi_loop(code)
+        code = ga.gcode_close_door(check_z_is_zero(), True, feed_rate=4500)
+        multiline_mdi_loop(code)
+
+        code = ga.gcode_move_to_ds(2, 3, True, feed_rate=4500)
+        multiline_mdi_loop(code)
+        code = ga.gcode_release_plate_ds(False, feed_rate=4500)
+        multiline_mdi_loop(code)
+
+        code = ga.gcode_move_to_cs(False, feed_rate=4500)
+        multiline_mdi_loop(code)
+        code = ga.gcode_grab_plate_cs(False, feed_rate=4500)
+        multiline_mdi_loop(code)
+        
+        code = ga.gcode_move_to_printer(2, False, feed_rate=4500)
+        multiline_mdi_loop(code)
+        code = ga.gcode_open_door(check_z_is_zero(), feed_rate=4500)
+        multiline_mdi_loop(code)
+        code = ga.gcode_release_plate_printer(True, feed_rate=4500)
+        multiline_mdi_loop(code)
+        code = ga.gcode_close_door(check_z_is_zero(), True, feed_rate=4500)
+        multiline_mdi_loop(code)
+
+    if home_all_axes():
+        print("Successful Test")
 
 
 if __name__ == "__main__":

@@ -17,12 +17,12 @@ camera_transform_coeffs:
 - arm_center_z: null
 
 clean_plate_axis: v
-clean_plate_distance: 200.0
+clean_plate_distance: 215.0
 cs_amount: 64
 cs_coords:
-  x: 2350.0
-  y: 705.0
-cs_grab_z: 345.0
+  x: 2352.0
+  y: 722.0
+cs_grab_z: 346.0
 cs_tag_id: 0
 
 ds_amount_per: 4
@@ -30,12 +30,12 @@ ds_angle: -13.0
 ds_rows: 4
 ds_cols: 7
 ds_coords:
-  x: 1225.0
-  y: 760.0
+  x: 400.0
+  y: 781.0
 ds_dx: 278.0
 ds_dy: -80.0
-ds_release_z: 400.0
-ds_release_dy: -30.0
+ds_release_z: 375.0
+ds_release_dy: -10.0
 ds_cols_coords:
   1:
     x: 0.1
@@ -68,19 +68,19 @@ ds_cols_tag_ids:
   70: 7
 
 gripper_axis: u
-gripper_down: -10.0
+gripper_down: -11.10
 gripper_up: 9.0
 
 manipulator_angle_0: 895.0
 manipulator_angle_90: 100.0
 manipulator_angle_n12: 950.0
 
-door_z: 400.0
+door_z: 395.0
 door_into_y: 35.0
-door_close_x_offset: 20.0
+door_close_x_offset: 15.0
 door_radius: 310.0
 door_open_delta:
-  x: -340.0
+  x: -335.0
   y: 0.0
   z: -285.0
 door_close_delta:
@@ -88,7 +88,7 @@ door_close_delta:
   y: 0.0
   z: 288.0
 door_to_plate_delta:
-  x: -46.4
+  x: -48.0
   y: 70.0
   z: 0.0
 
@@ -116,11 +116,11 @@ printer_tag_ids:
   12: 12
 printer_coords:
   1: 
-    x: 1815
+    x: 1815.0
     y: 0.0
   2: 
-    x: 0.1
-    y: 0.1
+    x: 493.0
+    y: 1110.0
   3:
     x: 0.1
     y: 0.1
@@ -152,4 +152,4 @@ printer_coords:
     x: 0.1
     y: 0.1
 
-printer_plate_z: 335.0
+printer_plate_z: 340.0

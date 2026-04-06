@@ -5,17 +5,6 @@ placeFrames 0.3
 set ::ratio 0.3
 set ::old_w_leftf 160
 set ::watchlist {
-    pin+pwmgen.0.value
-    pin+pwmgen.0.curr-dc
-    pin+pwmgen.0.scale
-    pin+pwmgen.0.pwm-freq
-    pin+pwmgen.0.pwm
-    pin+pwmgen.0.enable
-    pin+scale.0.in
-    pin+scale.0.time
-    pin+scale.0.out
-    pin+scale.0.offset
-    pin+scale.0.gain
 }
 set ::workmode watchhal
 set ::watchInterval 100
