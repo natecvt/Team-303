@@ -69,10 +69,14 @@ def set_state_active() -> bool:
     return False
 
 def home_all_axes() -> bool:
-    # TODO: wrap mode changes into this function
+
     if (s == None or c == None):
         print("Stat or Command channels not initialized")
         return False
+    
+    print("Setting Manual Mode for Homing")
+    c.mode(linuxcnc.MODE_MANUAL)
+    c.wait_complete()
 
     s.poll()
     print("Releasing EStop")
@@ -143,8 +147,6 @@ def handle_errors() -> bool:
     # handling not homed, z should home first
     if not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count())):
         rc = False
-        c.mode(linuxcnc.MODE_MANUAL)
-        c.wait_complete()
         if home_all_axes():
             rc = True
 

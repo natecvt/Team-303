@@ -10,9 +10,9 @@ class ManipulatorSM(StateMachine):
     Full = State()
     Clean = State()
     
-    grab = Empty.to(Full, on="placeholder")
-    release = Full.to(Empty, on="placeholder")
-    clean = Empty.to(Clean, on="placeholder") | Clean.to(Empty, on="placeholder")
+    grab = Empty.to(Full, cond="plate_grab")
+    release = Full.to(Empty, cond="plate_release")
+    clean = Empty.to(Clean, cond="clean_grab") | Clean.to(Empty, cond="clean_release")
 
     def require_manipulator(self, allowed_states):
         if (allowed_states not in self.configuration):
@@ -46,7 +46,6 @@ class ManipulatorSM(StateMachine):
         return True
     
     def plate_release(self, p) -> bool:
-
         if not (p.require_position(p.DirtyS)):
             return False
 
@@ -88,7 +87,7 @@ class PositionSM(StateMachine):
     DirtyS = State()
     CleanS = State()
 
-    go_printer = Home.to(Printer, on="placeholder") | CleanS.to(Printer, cond="clean_to_printer")
+    go_printer = Home.to(Printer, cond="home_to_printer") | CleanS.to(Printer, cond="clean_to_printer")
     go_home = Printer.to(Home, cond="printer_to_home") | DirtyS.to(Home, cond="dirty_to_home") | CleanS.to(Home, cond="clean_to_home")
     go_dirty = Printer.to(DirtyS, cond="printer_to_dirty")
     go_clean = DirtyS.to(CleanS, cond="dirty_to_clean")
@@ -103,6 +102,36 @@ class PositionSM(StateMachine):
         print(self.configuration)
         pass
 
+    def home_to_printer(self, m: ManipulatorSM, number: int):
+
+        if not (m.require_manipulator(ManipulatorSM.Empty)):
+            return False
+
+        if ds.is_full():
+            print("DS Full, can't do anything")
+            return False
+
+        if not li.set_state_active():
+            return False
+        
+        if not (m.require_manipulator(ManipulatorSM.Clean)):
+            return False
+        
+        if not (li.check_spindle(config["angle_90"])):
+            return False
+        
+        if not (li.check_z_is_zero()):
+            return False
+        
+        if li.ok_for_mdi():
+
+            move = ga.gcode_move_to_printer(number, True)
+
+            if li.multiline_mdi_loop(move):
+                return True
+
+        return False
+
     def clean_to_printer(self, m: ManipulatorSM, number: int) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Clean)):
             return False
@@ -115,9 +144,9 @@ class PositionSM(StateMachine):
         
         if li.ok_for_mdi():
 
-            move = ga.gcode_move_to_printer(number)
+            move = ga.gcode_move_to_printer(number, True)
 
-            if li.send_mdi_line(move):
+            if li.multiline_mdi_loop(move):
                 return True
 
         return False
@@ -136,7 +165,7 @@ class PositionSM(StateMachine):
         li.c.wait_complete()
 
         if li.home_all_axes():
-            return True
+            return li.set_state_resting()
         
         return False
 
@@ -154,7 +183,7 @@ class PositionSM(StateMachine):
         li.c.wait_complete()
 
         if li.home_all_axes():
-            return True
+            return li.set_state_resting()
         
         return False
 
@@ -172,7 +201,7 @@ class PositionSM(StateMachine):
         li.c.wait_complete()
 
         if li.home_all_axes():
-            return True
+            return li.set_state_resting()
         
         return False
 
