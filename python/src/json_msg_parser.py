@@ -13,19 +13,19 @@ def print_event(msg) -> str:
     else:
         return "Error: event_type not found"
 
-def printer_number(msg) -> int|None:
+def printer_number(msg) -> int:
     if 'event_type' in msg:
         printer_id = msg['printer']['id']
         print(f"Printer {printer_id}")
         return printer_id
     else:
-        return None
+        return -1
 
 def printer_status(current_status: str):
     if current_status == "PRINT_COMPLETE":
         print("The 3D print job has completed successfully.")
     elif current_status == "ERROR":
-        print("An error has occurred during the 3D printing process.") 
+        print("An error has occurred during the 3D printing process.")
     else:
         print("Unknown event type.") 
     return

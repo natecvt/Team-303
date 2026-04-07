@@ -242,7 +242,7 @@ def main():
         print("Sample MDI sucessful")
         code = ga.gcode_move_to_printer(2, False, feed_rate=4500)
         multiline_mdi_loop(code)
-        code = ga.gcode_open_door(check_z_is_zero(), feed_rate=2800)
+        code = ga.gcode_open_door(check_z_is_zero(), feed_rate=4500)
         multiline_mdi_loop(code)
         code = ga.gcode_grab_plate_printer(True, feed_rate=4500)
         multiline_mdi_loop(code)

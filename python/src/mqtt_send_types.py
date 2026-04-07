@@ -12,6 +12,7 @@ SEVERITY = {
 class Error:
     contents = {
         "event_type": "ERROR",
+        "error_code": int,
         "timestamp": str,
         "source": str,
         "at": {
@@ -29,9 +30,27 @@ class Error:
 
     def __str__(self):
         return json.dumps(self.contents, indent=4)
+    
+    def error_message(err_flag: int) -> str:
+        msg_lookup = {1 : "Wrong printer number\n",
+                    2 : "LinuxCNC in bad state\n",
+                    3 : "Dirty storage full\n",
+                    4 : "Clean storage full\n",
+                    5 : "Returned early, see following messages:\n\t",
+                    6 : "Position State Machine failed transition\n",
+                    7 : "Manipulator State Machine failed transition\n",
+                    8 : ""}
+
+        msg = ""
+        for i in range(err_flag.bit_length()):
+            if err_flag & (1 << i):
+                msg += msg_lookup[i]
+
+        return msg
 
     def fill_data(self, 
-                  severity=contents["severity"], 
+                  severity=contents["severity"],
+                  error_code=contents["error_code"],
                   source=contents["source"],
                   location=contents["at"]["location"],
                   statep=contents["at"]["statep"], 
@@ -40,6 +59,7 @@ class Error:
         
         self.contents["timestamp"] = str(datetime.now().time())
         self.contents["severity"] = severity
+        self.contents["error_code"] = error_code
         self.contents["source"] = source
         self.contents["at"]["location"] = location
         self.contents["at"]["statep"] = statep

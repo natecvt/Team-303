@@ -9,7 +9,7 @@ def create_message_thread() -> Thread:
 
 def create_main_loop_thread(main_loop) -> Thread:
     if callable(main_loop):
-        return Thread(target=main_loop, name="main")
+        return Thread(target=main_loop, name="worker")
     
     return Thread()
 

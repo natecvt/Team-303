@@ -5,9 +5,9 @@ GRIP_AXIS: str = config["gripper_axis"]
 GRIP_UP: float = config["gripper_up"]
 GRIP_DOWN: float = config["gripper_down"]
 
-MAN_ANGLE_P00 = config["manipulator_angle_0"]
-MAN_ANGLE_P90 = config["manipulator_angle_90"]
-MAN_ANGLE_N12 = config["manipulator_angle_n12"]
+MAN_ANGLE_P00: float = config["manipulator_angle_0"]
+MAN_ANGLE_P90: float = config["manipulator_angle_90"]
+MAN_ANGLE_N12: float = config["manipulator_angle_n12"]
 
 CS_AXIS: str = config["clean_plate_axis"]
 CS_DIST: float = config["clean_plate_distance"]
@@ -28,7 +28,7 @@ DOOR_OPEN_DEL: dict = config["door_open_delta"]
 DOOR_CLOSE_DEL: dict = config["door_close_delta"]
 
 # should be the point under the door where a y-move would engage the peg
-PRINTERS = config["printer_coords"]
+PRINTERS: dict = config["printer_coords"]
 # distance from printer zero to point where plate grabbing is possible
 # note this is much different since manipulator will be angled differently
 DOOR_PLATE_DEL: dict = config["door_to_plate_delta"]
@@ -72,8 +72,8 @@ def gcode_generic_move(x: float, y: float, z_is_zero: bool, feed_rate=1500) -> l
     return code
 
 # global move, sets zero to end location 
-def gcode_move_to_printer(printer_number: int, z_is_zero: bool, feed_rate=1500) -> list[str]:
-    coords = read_printer_coords(printer_number)
+def gcode_move_to_printer(coords: dict, z_is_zero: bool, feed_rate=1500) -> list[str]:
+
     code = []
 
     code.extend(reset_zero())

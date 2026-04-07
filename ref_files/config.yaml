@@ -21,7 +21,7 @@ clean_plate_distance: 215.0
 cs_amount: 64
 cs_coords:
   x: 2352.0
-  y: 722.0
+  y: 718.0
 cs_grab_z: 346.0
 cs_tag_id: 0
 
