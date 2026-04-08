@@ -80,18 +80,57 @@ def main_loop():
             print(f"Processing plate replacement from printer {num}")
 
             if flow == FLOW_CS_OK:
-                p.send("go_printer", m=m)
+                p.send("go_printer", m=m, number=num)
                 err_flag |= check_transition(p.Printer, False)
                 if (err_flag & (1 << 4)): continue
 
-                m.send("plate_grab", p=p)
+                m.send("grab", p=p)
                 err_flag |= check_transition(m.Full, True)
                 if (err_flag & (1 << 4)): continue
 
-                pass
+                p.send("go_dirty", m=m)
+                err_flag |= check_transition(p.DirtyS, False)
+                if (err_flag & (1 << 4)): continue
+
+                m.send("release", p=p)
+                err_flag |= check_transition(m.Empty, True)
+                if (err_flag & (1 << 4)): continue
+
+                p.send("go_clean", m=m)
+                err_flag |= check_transition(p.CleanS, False)
+                if (err_flag & (1 << 4)): continue
+
+                m.send("grab", p=p)
+                err_flag |= check_transition(m.Full, True)
+                if (err_flag & (1 << 4)): continue
+
+                p.send("go_printer", m=m, number=num)
+                err_flag |= check_transition(p.Printer, False)
+                if (err_flag & (1 << 4)): continue
+
+                m.send("release", p=p)
+                err_flag |= check_transition(m.Empty, True)
+                if (err_flag & (1 << 4)): continue
             
             else:
                 print("Clean storage empty, proceeding without plate replacement")
+
+                p.send("go_printer", m=m, number=num)
+                err_flag |= check_transition(p.Printer, False)
+                if (err_flag & (1 << 4)): continue
+
+                m.send("grab", p=p)
+                err_flag |= check_transition(m.Full, True)
+                if (err_flag & (1 << 4)): continue
+
+                p.send("go_dirty", m=m)
+                err_flag |= check_transition(p.DirtyS, False)
+                if (err_flag & (1 << 4)): continue
+
+                m.send("release", p=p)
+                err_flag |= check_transition(m.Empty, True)
+                if (err_flag & (1 << 4)): continue
+
                 pass
         
         print("Swap Complete, moving to next item in queue")
