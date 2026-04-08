@@ -18,7 +18,7 @@ camera_transform_coeffs:
 
 clean_plate_axis: v
 clean_plate_distance: 215.0
-cs_amount: 64
+cs_amount: 5
 cs_coords:
   x: 2352.0
   y: 718.0

@@ -31,7 +31,7 @@ class Error:
     def __str__(self):
         return json.dumps(self.contents, indent=4)
     
-    def error_message(err_flag: int) -> str:
+    def error_message(self, err_flag: int) -> str:
         msg_lookup = {1 : "Wrong printer number\n",
                     2 : "LinuxCNC in bad state\n",
                     3 : "Dirty storage full\n",

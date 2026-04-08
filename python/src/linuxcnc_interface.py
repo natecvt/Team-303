@@ -99,6 +99,7 @@ def home_all_axes() -> bool:
     print("Homing...")
     c.unhome(-1)
     c.wait_complete()
+    s.poll()
     c.home(-1) # home all axes by INI configuration
 
     count = 0
@@ -215,9 +216,9 @@ def multiline_mdi_loop(codes: list[str]) -> bool:
             return False
     return True
 
-def check_spindle(speed: int) -> bool:
+def check_spindle(speed: float) -> bool:
     s.poll()
-    if (s.spindle.enabled and s.spindle.speed == speed):
+    if (s.spindle[0]["enabled"] and s.spindle[0]["speed"] == speed):
         return True
     
     return False
@@ -240,33 +241,8 @@ def main():
         #set_state_resting()
         #set_state_active()
         print("Sample MDI sucessful")
-        code = ga.gcode_move_to_printer(2, False, feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_open_door(check_z_is_zero(), feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_grab_plate_printer(True, feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_close_door(check_z_is_zero(), True, feed_rate=4500)
-        multiline_mdi_loop(code)
 
-        code = ga.gcode_move_to_ds(2, 3, True, feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_release_plate_ds(False, feed_rate=4500)
-        multiline_mdi_loop(code)
-
-        code = ga.gcode_move_to_cs(False, feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_grab_plate_cs(False, feed_rate=4500)
-        multiline_mdi_loop(code)
-        
-        code = ga.gcode_move_to_printer(2, False, feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_open_door(check_z_is_zero(), feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_release_plate_printer(True, feed_rate=4500)
-        multiline_mdi_loop(code)
-        code = ga.gcode_close_door(check_z_is_zero(), True, feed_rate=4500)
-        multiline_mdi_loop(code)
+        check_spindle(100.0)
 
     if home_all_axes():
         print("Successful Test")

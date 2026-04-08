@@ -28,7 +28,7 @@ DOOR_OPEN_DEL: dict = config["door_open_delta"]
 DOOR_CLOSE_DEL: dict = config["door_close_delta"]
 
 # should be the point under the door where a y-move would engage the peg
-PRINTERS: dict = config["printer_coords"]
+PRINTERS = config["printer_coords"]
 # distance from printer zero to point where plate grabbing is possible
 # note this is much different since manipulator will be angled differently
 DOOR_PLATE_DEL: dict = config["door_to_plate_delta"]
@@ -317,7 +317,7 @@ def main():
     print(set_zero(False))
     print(reset_zero())
     print()
-    print(gcode_move_to_printer(1, False))
+    print(gcode_move_to_printer(read_printer_coords(1), False))
     print(gcode_open_door(False))
     print(gcode_close_door(True, True))
     print(gcode_grab_plate_printer(True))
