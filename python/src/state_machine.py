@@ -1,4 +1,4 @@
-from statemachine import StateMachine, State, exceptions
+from statemachine import StateMachine, State, exceptions, graph
 from config import config
 import linuxcnc_interface as li
 import gantry_actions as ga
@@ -253,12 +253,8 @@ m = ManipulatorSM()
 p = PositionSM()
 
 def main():
-    m.activate_initial_state()
-
-    p.send("go_printer")
-
-    if p.Printer.is_active:
-        print("transition success")
+    p._graph().write_png("/home/natec/Team-303/docs/posgraph.png")
+    m._graph().write_png("/home/natec/Team-303/docs/mangraph.png")
     
 
 if __name__ == "__main__":
