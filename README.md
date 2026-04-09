@@ -4,6 +4,7 @@ All programming related to the team 303 robotics and modelling will go here - ev
 ## External Connection - MQTT
 Message Queuing Telemetry Transport (MQTT) is used to send and receive messages between an external application and the Raspberry Pi 5 that hosts this application. Examples of these messages are in the `msgs` folder, and there are 3 types:
 - `print_complete` (Received): client software sends this message to our application to initiate a bed swap
+- `storage_reset` (Received): client software sends this message to tell program if storage has been manually reset
 - `swap_complete` (Sent): send this to the client once a swap is completed
 - `error` (Sent): send this to the client if a swap encounters an error, under the following conditions:
   - Full plate storage full
