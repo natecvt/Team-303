@@ -49,25 +49,36 @@ def open_linuxcnc() -> bool:
     return True
 
 def set_state_resting() -> bool:
+
+    c.abort()
+    c.wait_complete()
+
+    c.mode(linuxcnc.MODE_MANUAL)
+    c.wait_complete()
+
     c.state(linuxcnc.STATE_OFF)
     c.wait_complete()
 
-    s.poll()
     time.sleep(2.0)
+
+    s.poll()
     if s.task_state == linuxcnc.STATE_OFF:
-        print("Resting")
+        print("Resting Until Next Job")
         return True
     
     return False
 
 def set_state_active() -> bool:
+
     c.state(linuxcnc.STATE_ON)
     c.wait_complete()
 
+    c.mode(linuxcnc.MODE_MANUAL)
+    c.wait_complete()
+
     s.poll()
-    time.sleep(2.0)
     if s.task_state == linuxcnc.STATE_ON:
-        print("Returning to Idle")
+        print("Returning to Active")
         return home_all_axes()
     
     return False
@@ -190,10 +201,9 @@ def send_mdi_line(code: str) -> int:
         crc = c.wait_complete(LCNC_MOTION_TIMEOUT)
         if (crc == -1 or crc == linuxcnc.RCS_ERROR):
             rc = 1
-            print("MDI code failed")
-
+            print("MDI line failed" + code)
     else:
-        print("Not ok for MDI commands")
+        print("State not ok for MDI commands")
         rc = 1
     
     if handle_errors():
@@ -208,12 +218,10 @@ def multiline_mdi_loop(codes: list[str]) -> bool:
             continue
 
         if (rc == 1):
-            print("MDI Line Failed: " + code)
+            c.abort()
+            home_all_axes()
             return False
 
-        if (rc == 2):
-            print("MDI Line Failed: " + code)
-            return False
     return True
 
 def check_spindle(speed: float) -> bool:

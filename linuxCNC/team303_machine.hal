@@ -126,7 +126,7 @@ loadrt scale count=1
 addf scale.0 servo-thread
 
 setp scale.0.gain 0.001          # S1000 → 1.0
-setp scale.0.offset 0.0005        # shift to 1–2 ms range
+setp scale.0.offset 0.0005        # shift to 0.5–2 ms range
 
 net spindle-speed spindle.0.speed-out => scale.0.in
 net servo-pulse scale.0.out => pwmgen.0.value

@@ -9,30 +9,37 @@ class ManipulatorSM(StateMachine):
     Empty = State(initial=True)
     Full = State()
     
-    grab = (Empty.to(Full, before="plate_grab"))
-    release = (Full.to(Empty, before="plate_release"))
+    Empty.to(Full, cond="etf")
+    Full.to(Empty, cond="fte")
+
+    grab = (Empty.to.itself(internal=True, on="plate_grab"))
+    release = (Full.to.itself(internal=True, on="plate_release"))
 
     def require_manipulator(self, allowed_states) -> bool:
         if (allowed_states not in self.configuration):
             return False
         
         return True
+    
+    etf = False
+    fte = False
         
     def placeholder(self):
         print(self.configuration)
         pass
     
     def plate_grab(self, p) -> bool:
-
         at_clean = p.require_position(p.CleanS)
         at_printer = p.require_position(p.Printer)
 
         if not (at_clean or at_printer):
-            return False
+            etf = False
+            return etf
         
         if (at_clean and at_printer):
             print("Invalid state")
-            return False
+            etf = False
+            return etf
 
         if li.ok_for_mdi():
             if at_clean:
@@ -42,21 +49,25 @@ class ManipulatorSM(StateMachine):
                 move.extend(ga.gcode_grab_plate_printer(True))
                 move.extend(ga.gcode_close_door(True, False))
                 
-            if not (li.multiline_mdi_loop(move)):
-                return False
+            if (li.multiline_mdi_loop(move)):
+                etf = True
+                return etf
             
-        return True
+        etf = False
+        return etf
     
     def plate_release(self, p) -> bool:
         at_dirty = p.require_position(p.DirtyS)
         at_printer = p.require_position(p.Printer)
 
         if not (at_dirty or at_printer):
-            return False
+            fte = False
+            return fte
         
         if (at_dirty and at_printer):
             print("Invalid state")
-            return False
+            fte = False
+            return fte
 
         if li.ok_for_mdi():
 
@@ -67,10 +78,12 @@ class ManipulatorSM(StateMachine):
                 move.extend(ga.gcode_release_plate_printer(True))
                 move.extend(ga.gcode_close_door(True, False))
                 
-            if not (li.multiline_mdi_loop(move)):
-                return False
+            if (li.multiline_mdi_loop(move)):
+                fte = True
+                return fte
         
-        return True
+        fte = False
+        return fte
 
         
 class PositionSM(StateMachine):
@@ -107,60 +120,66 @@ class PositionSM(StateMachine):
         pass
 
     def home_to_printer(self, m: ManipulatorSM, number: int):
-        print("Hi")
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            return False
+            htp = False
+            return htp
 
         if ds.is_full():
             print("DS Full, can't do anything")
-            return False
+            htp = False
+            return htp
 
         #if not li.set_state_active():
             #return False
         
         if not (li.check_z_is_zero()):
-            print("Hi2")
-            return False
+            htp = False
+            return htp
         
         if li.ok_for_mdi():
             coords: dict = ga.read_printer_coords(number)
 
             if coords['x'] == None:
-                print("Hi3")
-                return False
+                htp = False
+                return htp
             
             move = ga.gcode_move_to_printer(coords, True)
 
             if li.multiline_mdi_loop(move):
-                print("Hi5")
                 self.htp = True
-                return True
+                return htp
 
-        print("Hi4")
-        return False
+        htp = False
+        return htp
 
     def clean_to_printer(self, m: ManipulatorSM, number: int) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Full)):
-            return False
+            htp = False
+            return htp
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            return False
+            htp = False
+            return htp
         
         if not (li.check_z_is_zero()):
-            return False
+            htp = False
+            return htp
         
         if li.ok_for_mdi():
             coords: dict = ga.read_printer_coords(number)
 
             if coords['x'] == None:
-                return False
+                htp = False
+                return htp
             
             move = ga.gcode_move_to_printer(coords, True)
 
             if li.multiline_mdi_loop(move):
-                return True
+                htp = True
+                return htp
 
-        return False
+        htp = False
+        return htp
     
     def printer_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
