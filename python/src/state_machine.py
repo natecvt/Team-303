@@ -108,6 +108,10 @@ class PositionSM(StateMachine):
     htp = False
     ctp = False
     pth = False
+    cth = False
+    dth = False
+    ptd = False
+    dtc = False
 
     def require_position(self, *allowed_states) -> bool:
         if (allowed_states not in self.configuration):
@@ -154,42 +158,45 @@ class PositionSM(StateMachine):
 
     def clean_to_printer(self, m: ManipulatorSM, number: int) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Full)):
-            htp = False
-            return htp
+            ctp = False
+            return ctp
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            htp = False
-            return htp
+            ctp = False
+            return ctp
         
         if not (li.check_z_is_zero()):
-            htp = False
-            return htp
+            ctp = False
+            return ctp
         
         if li.ok_for_mdi():
             coords: dict = ga.read_printer_coords(number)
 
             if coords['x'] == None:
-                htp = False
-                return htp
+                ctp = False
+                return ctp
             
             move = ga.gcode_move_to_printer(coords, True)
 
             if li.multiline_mdi_loop(move):
-                htp = True
-                return htp
+                ctp = True
+                return ctp
 
-        htp = False
-        return htp
-    
+        ctp = False
+        return ctp
+
     def printer_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            return False
+            pth = False
+            return pth
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            return False
+            pth = False
+            return pth
         
         if not (li.check_z_is_zero()):
-            return False
+            pth = False
+            return pth
         
         li.c.mode(li.linuxcnc.MODE_MANUAL)
         li.c.wait_complete()
@@ -197,17 +204,21 @@ class PositionSM(StateMachine):
         if li.home_all_axes():
             return li.set_state_resting()
         
-        return False
+        pth = False
+        return pth
 
     def dirty_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            return False
+            dth = False
+            return dth
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            return False
+            dth = False
+            return dth
         
         if not (li.check_z_is_zero()):
-            return False
+            dth = False
+            return dth
         
         li.c.mode(li.linuxcnc.MODE_MANUAL)
         li.c.wait_complete()
@@ -215,17 +226,21 @@ class PositionSM(StateMachine):
         if li.home_all_axes():
             return li.set_state_resting()
         
-        return False
+        dth = False
+        return dth
 
     def clean_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            return False
+            cth = False
+            return cth
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            return False
+            cth = False
+            return cth
         
         if not (li.check_z_is_zero()):
-            return False
+            cth = False
+            return cth
         
         li.c.mode(li.linuxcnc.MODE_MANUAL)
         li.c.wait_complete()
@@ -233,52 +248,64 @@ class PositionSM(StateMachine):
         if li.home_all_axes():
             return li.set_state_resting()
         
-        return False
+        cth = False
+        return cth
 
     def printer_to_dirty(self, m: ManipulatorSM) -> bool:
         if (ds.is_full()):
-            return False
+            ptd = False
+            return ptd
         
         [r, c] = ds.detect_first_free()
 
         if not (m.require_manipulator(ManipulatorSM.Full)):
-            return False
+            ptd = False
+            return ptd
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            return False
+            ptd = False
+            return ptd
         
         if not (li.check_z_is_zero()):
-            return False
+            ptd = False
+            return ptd
 
         if li.ok_for_mdi():
             move = ga.gcode_move_to_ds(r, c, True)
 
             if li.multiline_mdi_loop(move):
-                return True
+                ptd = True
+                return ptd
             
-        return False
+        ptd = False
+        return ptd
     
     def dirty_to_clean(self, m: ManipulatorSM):
         if (cs.is_empty()):
-            return False
+            dtc = False
+            return dtc
         
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            return False
+            dtc = False
+            return dtc
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            return False
+            dtc = False
+            return dtc
         
         if not (li.check_z_is_zero()):
-            return False
+            dtc = False
+            return dtc
         
         if li.ok_for_mdi():
             move = ga.gcode_move_to_cs(True)
 
             if li.multiline_mdi_loop(move):
-                return True
+                dtc = True
+                return dtc
             
-        return False
-        
+        dtc = False
+        return dtc
 
 
 m = ManipulatorSM()
