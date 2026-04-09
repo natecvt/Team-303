@@ -57,7 +57,7 @@ class DirtyShelf:
 
         return [-1, -1]
     
-    def remove_all(self):
+    def reset(self):
         self.__storage = [[0 for _ in range(self.__cols)] for _ in range(self.__rows)]
 
     def get_storage(self) -> list:
@@ -92,6 +92,9 @@ class CleanDispenser:
             return
 
         self.__amount -= 1
+
+    def reset(self, amount=AMOUNT):
+        self.__amount = amount
 
     def get_amount(self) -> int:
         return self.__amount

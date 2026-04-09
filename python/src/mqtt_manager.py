@@ -31,10 +31,7 @@ def on_connect(client, userdata, flags, rc, properties):
     client.subscribe(TOPIC_R)
 
 def on_message(client, userdata, msg):
-    jobscount = sum(1 for entry in JOB_PATH.iterdir() if entry.is_file())
-    with open(f"jobs/{jobscount}.json", "xt") as newjob:
-        jmp.write_str_as_json(newjob, str(msg.payload))
-
+    print("Received message")
     recieved_q.put(msg.payload)
 
 def assign_callbacks(on_msg, on_con) -> bool:
@@ -57,7 +54,6 @@ def connect(host, port=1883, ka=60):
 def publish_error(msg=str(error_message), host=MQTT_IP, port=1883, ka=60):
     pub.single(TOPIC_E, payload=msg, hostname=host, port=port, keepalive=ka)
 
-# can be done on the worker thread, since this does not require a loop_forever() call
 def publish_complete(msg=str(sc_message), host=MQTT_IP, port=1883, ka=60):
     pub.single(TOPIC_C, payload=msg, hostname=host, port=port, keepalive=ka)
 

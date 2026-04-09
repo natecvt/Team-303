@@ -3,32 +3,42 @@ import os # For accessing environment variables, such as USER
 import datetime
 from datetime import datetime
 
+EVENT_PC = "PRINT_COMPLETE"
+EVENT_E = "ERROR"
+EVENT_SC = "SWAP_COMPLETE"
+EVENT_SR = "STORAGE_RESET"
 
-array = ["PRINT_COMPLETE", "ERROR"]
+def get_event(msg: str) -> str:
+    obj = json.loads(str)
 
-def print_event(msg) -> str:
-    if 'event_type' in msg:
-        event_type = msg['event_type']
-        return event_type
-    else:
-        return "Error: event_type not found"
+    if "event_type" in obj.keys():
+        return obj["event_type"]
+    
+    return None
 
-def printer_number(msg) -> int:
-    if 'event_type' in msg:
-        printer_id = msg['printer']['id']
-        print(f"Printer {printer_id}")
-        return printer_id
-    else:
-        return -1
+def storage_reset_get_amount(msg: str) -> int | None:
+    obj = json.loads(str)
 
-def printer_status(current_status: str):
-    if current_status == "PRINT_COMPLETE":
-        print("The 3D print job has completed successfully.")
-    elif current_status == "ERROR":
-        print("An error has occurred during the 3D printing process.")
-    else:
-        print("Unknown event type.") 
-    return
+    if "plate_amount" in obj.keys():
+        return obj["plate_amount"]
+    
+    return None
+
+def storage_reset_get_time(msg: str) -> str | None:
+    obj = json.loads(str)
+
+    if "timestamp" in obj.keys():
+        return obj["timestamp"]
+    
+    return None
+
+def printer_get_number(msg: str) -> int|None:
+    obj = json.loads(str)
+
+    if "printer" in obj.keys():
+        return obj["printer"]["id"]
+    
+    return None
 
 # file should be open before this
 def write_str_as_json(file, contents: str):
@@ -36,8 +46,6 @@ def write_str_as_json(file, contents: str):
         print("Invalid file for writing")
     
     json.dump(contents, file, indent=4)
-
-
 
 def main():
         with open(f'{os.getenv("HOME")}/Team-303/msgs/msg.json', 'r') as file:
@@ -50,11 +58,7 @@ def main():
                 current_time = datetime.now().strftime("%Y%m%d_%H%M")
                 with open(f'log{current_time}.txt', 'w') as log_file:
                     log_file.write(log)
-                return  
-        
-        print_id = printer_number(status)
-        event_status = print_event(status)
-        printer_status(event_status)
+                return
 
 if __name__ == "__main__":
     main()

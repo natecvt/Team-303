@@ -32,7 +32,7 @@ def main_loop():
     # 6 CRITICAL posSM failed transition
     # 7 CRITICAL manSM failed transition
     # 8 
-    err_flag: int
+    err_flag: int = 0
     coords = {"x": 0.0, "y": 0.0}
 
     m.activate_initial_state()
@@ -58,11 +58,23 @@ def main_loop():
             li.time.sleep(10.0)
             continue
 
-        mq.sc_message.update_time() # for calculating delta T
-
         # get message and parse for printer
         msg: str = mq.recieved_q.get()
-        num: int  = js.printer_number(msg)
+
+        if (js.get_event(msg) == None):
+            print("Bad message")
+            continue
+
+        if (js.get_event(msg) == js.EVENT_SR):
+
+            amount = js.storage_reset_get_amount(msg)
+            cs.reset(amount)
+            ds.reset()
+            continue
+
+        num: int  = js.printer_get_number(msg)
+
+        mq.sc_message.update_time() # for calculating delta T
 
         # initial errors
         err_flag |= (not (num in ga.PRINTERS.keys())) << 0
