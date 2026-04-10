@@ -33,8 +33,8 @@ class ManipulatorSM(StateMachine):
         at_printer = p.require_position(p.Printer)
 
         if not (at_clean or at_printer):
-            etf = False
-            return etf
+            self.etf = False
+            return self.etf
         
         if (at_clean and at_printer):
             print("Invalid state")
@@ -50,24 +50,24 @@ class ManipulatorSM(StateMachine):
                 move.extend(ga.gcode_close_door(True, False))
                 
             if (li.multiline_mdi_loop(move)):
-                etf = True
-                return etf
+                self.etf = True
+                return self.etf
             
-        etf = False
-        return etf
+        self.etf = False
+        return self.etf
     
     def plate_release(self, p) -> bool:
         at_dirty = p.require_position(p.DirtyS)
         at_printer = p.require_position(p.Printer)
 
         if not (at_dirty or at_printer):
-            fte = False
-            return fte
+            self.fte = False
+            return self.fte
         
         if (at_dirty and at_printer):
             print("Invalid state")
-            fte = False
-            return fte
+            self.fte = False
+            return self.fte
 
         if li.ok_for_mdi():
 
@@ -79,27 +79,35 @@ class ManipulatorSM(StateMachine):
                 move.extend(ga.gcode_close_door(True, False))
                 
             if (li.multiline_mdi_loop(move)):
-                fte = True
-                return fte
+                self.fte = True
+                return self.fte
         
-        fte = False
-        return fte
+        self.fte = False
+        return self.fte
 
         
 class PositionSM(StateMachine):
     # Define states
     Home = State(initial=True)
     Printer = State()
-    #DirtyS = State()
-    #CleanS = State()
+    DirtyS = State()
+    CleanS = State()
 
     Home.to(Printer, cond="htp")
-    #CleanS.to(Printer, cond="ctp")
+    CleanS.to(Printer, cond="ctp")
+    DirtyS.to(CleanS, cond="dtc")
+    DirtyS.to(Home, cond="dth")
     Printer.to(Home, cond="pth")
+    CleanS.to(Home, cond="cth")
+    Printer.to(DirtyS, cond="ptd")
 
     home_printer = Home.to.itself(internal=True, on="home_to_printer") 
-    #clean_printer = CleanS.to.itself(internal=True, on="clean_to_printer")
+    clean_printer = CleanS.to.itself(internal=True, on="clean_to_printer")
+    clean_home = CleanS.to.itself(internal=True, on="clean_to_home")
     printer_home = Printer.to.itself(internal=True, on="printer_to_home")
+    dirty_home = DirtyS.to.itself(internal=True, on="dirty_to_home")
+    dirty_clean = DirtyS.to.itself(internal=True, on="dirty_to_clean")
+    printer_dirty = Printer.to.itself(internal=True, on="printer_to_dirty")
                   
     #go_home = (Printer.to(Home, before="printer_to_home")# | DirtyS.to(Home, before="dirty_to_home") | CleanS.to(Home, before="clean_to_home"))
     #go_dirty = (Printer.to(DirtyS, before="printer_to_dirty"))
@@ -125,187 +133,213 @@ class PositionSM(StateMachine):
 
     def home_to_printer(self, m: ManipulatorSM, number: int):
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            htp = False
-            return htp
+            self.htp = False
+            return self.htp
 
         if ds.is_full():
             print("DS Full, can't do anything")
-            htp = False
-            return htp
+            self.htp = False
+            return self.htp
 
         #if not li.set_state_active():
             #return False
         
         if not (li.check_z_is_zero()):
-            htp = False
-            return htp
+            self.htp = False
+            return self.htp
         
         if li.ok_for_mdi():
             coords: dict = ga.read_printer_coords(number)
 
             if coords['x'] == None:
-                htp = False
-                return htp
+                self.htp = False
+                return self.htp
             
             move = ga.gcode_move_to_printer(coords, True)
 
             if li.multiline_mdi_loop(move):
                 self.htp = True
-                return htp
+                return self.htp
 
-        htp = False
-        return htp
+        self.htp = False
+        return self.htp
 
     def clean_to_printer(self, m: ManipulatorSM, number: int) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Full)):
-            ctp = False
-            return ctp
+            self.ctp = False
+            return self.ctp
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            ctp = False
-            return ctp
+            self.ctp = False
+            return self.ctp
         
         if not (li.check_z_is_zero()):
-            ctp = False
-            return ctp
+            self.ctp = False
+            return self.ctp
         
         if li.ok_for_mdi():
             coords: dict = ga.read_printer_coords(number)
 
             if coords['x'] == None:
-                ctp = False
-                return ctp
+                self.ctp = False
+                return self.ctp
             
             move = ga.gcode_move_to_printer(coords, True)
 
             if li.multiline_mdi_loop(move):
-                ctp = True
-                return ctp
+                self.ctp = True
+                return self.ctp
 
-        ctp = False
-        return ctp
+        self.ctp = False
+        return self.ctp
 
     def printer_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            pth = False
-            return pth
+            self.pth = False
+            return self.pth
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            pth = False
-            return pth
+            self.pth = False
+            return self.pth
         
         if not (li.check_z_is_zero()):
-            pth = False
-            return pth
+            self.pth = False
+            return self.pth
         
         li.c.mode(li.linuxcnc.MODE_MANUAL)
         li.c.wait_complete()
 
         if li.home_all_axes():
-            return li.set_state_resting()
+            self.pth = li.set_state_resting()
+
+            if (self.pth):
+                self.htp = False
+                self.ctp = False
+                self.cth = False
+                self.dth = False
+                self.ptd = False
+                self.dtc = False
+            
+            return self.pth
         
-        pth = False
-        return pth
+        self.pth = False
+        return self.pth
 
     def dirty_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            dth = False
-            return dth
+            self.dth = False
+            return self.dth
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            dth = False
-            return dth
+            self.dth = False
+            return self.dth
         
         if not (li.check_z_is_zero()):
-            dth = False
-            return dth
+            self.dth = False
+            return self.dth
         
         li.c.mode(li.linuxcnc.MODE_MANUAL)
         li.c.wait_complete()
 
         if li.home_all_axes():
-            return li.set_state_resting()
+            self.dth = li.set_state_resting()
+
+            if (self.dth):
+                self.htp = False
+                self.ctp = False
+                self.cth = False
+                self.pth = False
+                self.ptd = False
+                self.dtc = False
         
-        dth = False
-        return dth
+        self.dth = False
+        return self.dth
 
     def clean_to_home(self, m: ManipulatorSM) -> bool:
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            cth = False
-            return cth
+            self.cth = False
+            return self.cth
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            cth = False
-            return cth
+            self.cth = False
+            return self.cth
         
         if not (li.check_z_is_zero()):
-            cth = False
-            return cth
+            self.cth = False
+            return self.cth
         
         li.c.mode(li.linuxcnc.MODE_MANUAL)
         li.c.wait_complete()
 
         if li.home_all_axes():
-            return li.set_state_resting()
+            self.cth = li.set_state_resting()
+
+            if (self.cth):
+                self.htp = False
+                self.ctp = False
+                self.dth = False
+                self.pth = False
+                self.ptd = False
+                self.dtc = False
         
-        cth = False
-        return cth
+        self.cth = False
+        return self.cth
 
     def printer_to_dirty(self, m: ManipulatorSM) -> bool:
         if (ds.is_full()):
-            ptd = False
-            return ptd
+            self.ptd = False
+            return self.ptd
         
         [r, c] = ds.detect_first_free()
 
         if not (m.require_manipulator(ManipulatorSM.Full)):
-            ptd = False
-            return ptd
+            self.ptd = False
+            return self.ptd
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            ptd = False
-            return ptd
+            self.ptd = False
+            return self.ptd
         
         if not (li.check_z_is_zero()):
-            ptd = False
-            return ptd
+            self.ptd = False
+            return self.ptd
 
         if li.ok_for_mdi():
             move = ga.gcode_move_to_ds(r, c, True)
 
             if li.multiline_mdi_loop(move):
-                ptd = True
-                return ptd
+                self.ptd = True
+                return self.ptd
             
-        ptd = False
-        return ptd
+        self.ptd = False
+        return self.ptd
     
     def dirty_to_clean(self, m: ManipulatorSM):
         if (cs.is_empty()):
-            dtc = False
-            return dtc
+            self.dtc = False
+            return self.dtc
         
         if not (m.require_manipulator(ManipulatorSM.Empty)):
-            dtc = False
-            return dtc
+            self.dtc = False
+            return self.dtc
         
         if not (li.check_spindle(ga.MAN_ANGLE_P90)):
-            dtc = False
-            return dtc
+            self.dtc = False
+            return self.dtc
         
         if not (li.check_z_is_zero()):
-            dtc = False
-            return dtc
+            self.dtc = False
+            return self.dtc
         
         if li.ok_for_mdi():
             move = ga.gcode_move_to_cs(True)
 
             if li.multiline_mdi_loop(move):
-                dtc = True
-                return dtc
+                self.dtc = True
+                return self.dtc
             
-        dtc = False
-        return dtc
+        self.dtc = False
+        return self.dtc
 
 
 m = ManipulatorSM()

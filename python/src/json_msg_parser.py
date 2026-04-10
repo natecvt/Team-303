@@ -36,7 +36,7 @@ def printer_get_number(msg: str) -> int|None:
     obj = json.loads(str)
 
     if "printer" in obj.keys():
-        return obj["printer"]["id"]
+        return obj["printer_id"]
     
     return None
 
