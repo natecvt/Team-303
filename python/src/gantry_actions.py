@@ -34,6 +34,8 @@ PRINTERS = config["printer_coords"]
 DOOR_PLATE_DEL: dict = config["door_to_plate_delta"]
 PRINTER_GRAB_Z: float = config["printer_plate_z"]
 
+FEED_RATE: float = config["feed_rate"]
+
 
 def read_printer_coords(printer_number: int) -> dict:
     if not isinstance(printer_number, int) or printer_number not in PRINTERS.keys():
@@ -42,7 +44,7 @@ def read_printer_coords(printer_number: int) -> dict:
     return PRINTERS.get(printer_number)
 
 # does this only for the x and y, z should always have global zero
-def set_zero(z_is_zero: bool, feed_rate=1500) -> list[str]:
+def set_zero(z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     if not z_is_zero:
@@ -58,7 +60,7 @@ def reset_zero() -> list[str]:
     code.append(gg.generate_code({}, 921))
     return code
     
-def gcode_generic_move(x: float, y: float, z_is_zero: bool, feed_rate=1500) -> list[str]:
+def gcode_generic_move(x: float, y: float, z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
     
     code.extend(reset_zero())
@@ -72,7 +74,7 @@ def gcode_generic_move(x: float, y: float, z_is_zero: bool, feed_rate=1500) -> l
     return code
 
 # global move, sets zero to end location 
-def gcode_move_to_printer(coords: dict, z_is_zero: bool, feed_rate=1500) -> list[str]:
+def gcode_move_to_printer(coords: dict, z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
 
     code = []
 
@@ -90,7 +92,7 @@ def gcode_move_to_printer(coords: dict, z_is_zero: bool, feed_rate=1500) -> list
 
     return code
 
-def gcode_move_to_home(z_is_zero: bool, feed_rate=1500) -> list[str]:
+def gcode_move_to_home(z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     code.append(gg.generate_code({}, 90))
@@ -104,7 +106,7 @@ def gcode_move_to_home(z_is_zero: bool, feed_rate=1500) -> list[str]:
     
     return code
 
-def gcode_move_to_cs(z_is_zero: bool, feed_rate=1500) -> list[str]:
+def gcode_move_to_cs(z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     code.extend(reset_zero())
@@ -118,7 +120,7 @@ def gcode_move_to_cs(z_is_zero: bool, feed_rate=1500) -> list[str]:
 
     return code
 
-def gcode_move_to_ds(row: int, col: int, z_is_zero: bool, feed_rate=1500) -> list[str]:
+def gcode_move_to_ds(row: int, col: int, z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     code.extend(reset_zero())
@@ -138,7 +140,7 @@ def gcode_move_to_ds(row: int, col: int, z_is_zero: bool, feed_rate=1500) -> lis
 
     return code
 
-def gcode_grab_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z,  feed_rate=750) -> list[str]:
+def gcode_grab_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z,  feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     # make sure z is zero before moving servo
@@ -162,7 +164,7 @@ def gcode_grab_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z,  feed_rate=
     
     return code
 
-def gcode_release_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z, feed_rate=750) -> list[str]:
+def gcode_release_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     # make sure z is zero before moving servo
@@ -191,7 +193,7 @@ def gcode_release_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z, feed_rat
 
     return code    
 
-def gcode_open_door(z_is_zero: bool, feed_rate=900) -> list[str]:
+def gcode_open_door(z_is_zero: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     #G92 has already set zero to right location
@@ -223,7 +225,7 @@ def gcode_open_door(z_is_zero: bool, feed_rate=900) -> list[str]:
     
     return code
 
-def gcode_close_door(z_is_zero: bool, is_second: bool, feed_rate=900) -> list[str]:
+def gcode_close_door(z_is_zero: bool, is_second: bool, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     #G92 has already set zero to right location
@@ -264,7 +266,7 @@ def gcode_close_door(z_is_zero: bool, is_second: bool, feed_rate=900) -> list[st
     
     return code
 
-def gcode_release_plate_ds(z_is_zero: bool, z_dist=DS_RELEASE_Z, y_dist=DS_RELEASE_DY, feed_rate=750) -> list[str]:
+def gcode_release_plate_ds(z_is_zero: bool, z_dist=DS_RELEASE_Z, y_dist=DS_RELEASE_DY, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     # make sure z is zero before moving servo
@@ -290,7 +292,7 @@ def gcode_release_plate_ds(z_is_zero: bool, z_dist=DS_RELEASE_Z, y_dist=DS_RELEA
 
     return code
 
-def gcode_grab_plate_cs(z_is_zero: bool, z_dist=CS_GRAB_Z, feed_rate=750) -> list[str]:
+def gcode_grab_plate_cs(z_is_zero: bool, z_dist=CS_GRAB_Z, feed_rate=FEED_RATE) -> list[str]:
     code = []
 
     # make sure z is zero before moving servo

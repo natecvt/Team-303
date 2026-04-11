@@ -49,7 +49,7 @@ def main_loop():
                                        str(m.configuration),
                                        mq.error_message.error_message(err_flag)
                                        )
-            mq.publish_error(str(mq.error_message))
+            mq.publish_error(mq.error_message)
 
         err_flag = 0
 
@@ -72,7 +72,7 @@ def main_loop():
             ds.reset()
             continue
 
-        num: int  = js.printer_get_number(msg)
+        num  = js.printer_get_number(msg)
 
         mq.sc_message.update_time() # for calculating delta T
 
@@ -151,7 +151,7 @@ def main_loop():
                                 str(p.configuration), 
                                 str(m.configuration)
                                 )
-        mq.publish_complete(str(mq.sc_message))
+        mq.publish_complete(mq.sc_message)
 
 def main():
     # linuxCNC

@@ -16,10 +16,10 @@ class ManipulatorSM(StateMachine):
     release = (Full.to.itself(internal=True, on="plate_release"))
 
     def require_manipulator(self, allowed_states) -> bool:
-        if (allowed_states not in self.configuration):
-            return False
+        if (allowed_states in self.configuration):
+            return True
         
-        return True
+        return False
     
     etf = False
     fte = False
@@ -38,12 +38,13 @@ class ManipulatorSM(StateMachine):
         
         if (at_clean and at_printer):
             print("Invalid state")
-            etf = False
-            return etf
+            self.etf = False
+            return self.etf
 
         if li.ok_for_mdi():
             if at_clean:
                 move = ga.gcode_grab_plate_cs(True)
+                cs.remove_one()
             if at_printer:
                 move = ga.gcode_open_door(True)
                 move.extend(ga.gcode_grab_plate_printer(True))
@@ -51,6 +52,7 @@ class ManipulatorSM(StateMachine):
                 
             if (li.multiline_mdi_loop(move)):
                 self.etf = True
+                self.fte = False
                 return self.etf
             
         self.etf = False
@@ -79,7 +81,9 @@ class ManipulatorSM(StateMachine):
                 move.extend(ga.gcode_close_door(True, False))
                 
             if (li.multiline_mdi_loop(move)):
+                print("Hi")
                 self.fte = True
+                self.etf = False
                 return self.fte
         
         self.fte = False
@@ -108,11 +112,7 @@ class PositionSM(StateMachine):
     dirty_home = DirtyS.to.itself(internal=True, on="dirty_to_home")
     dirty_clean = DirtyS.to.itself(internal=True, on="dirty_to_clean")
     printer_dirty = Printer.to.itself(internal=True, on="printer_to_dirty")
-                  
-    #go_home = (Printer.to(Home, before="printer_to_home")# | DirtyS.to(Home, before="dirty_to_home") | CleanS.to(Home, before="clean_to_home"))
-    #go_dirty = (Printer.to(DirtyS, before="printer_to_dirty"))
-    #go_clean = (DirtyS.to(CleanS, before="dirty_to_clean"))
-
+                
     htp = False
     ctp = False
     pth = False
@@ -121,11 +121,11 @@ class PositionSM(StateMachine):
     ptd = False
     dtc = False
 
-    def require_position(self, *allowed_states) -> bool:
-        if (allowed_states not in self.configuration):
-            return False
+    def require_position(self, allowed_states) -> bool:
+        if (self.configuration.__contains__(allowed_states)):
+            return True
         
-        return True
+        return False
         
     def placeholder(self):
         print(self.configuration)
@@ -141,8 +141,8 @@ class PositionSM(StateMachine):
             self.htp = False
             return self.htp
 
-        #if not li.set_state_active():
-            #return False
+        if not li.set_state_active():
+            return False
         
         if not (li.check_z_is_zero()):
             self.htp = False
@@ -159,6 +159,14 @@ class PositionSM(StateMachine):
 
             if li.multiline_mdi_loop(move):
                 self.htp = True
+
+                self.pth = False
+                self.ctp = False
+                self.cth = False
+                self.dth = False
+                self.ptd = False
+                self.dtc = False
+
                 return self.htp
 
         self.htp = False
@@ -188,6 +196,14 @@ class PositionSM(StateMachine):
 
             if li.multiline_mdi_loop(move):
                 self.ctp = True
+
+                self.pth = False
+                self.htp = False
+                self.cth = False
+                self.dth = False
+                self.ptd = False
+                self.dtc = False
+
                 return self.ctp
 
         self.ctp = False
@@ -251,6 +267,8 @@ class PositionSM(StateMachine):
                 self.pth = False
                 self.ptd = False
                 self.dtc = False
+
+            return self.dth
         
         self.dth = False
         return self.dth
@@ -281,6 +299,8 @@ class PositionSM(StateMachine):
                 self.pth = False
                 self.ptd = False
                 self.dtc = False
+
+            return self.cth
         
         self.cth = False
         return self.cth
@@ -308,7 +328,16 @@ class PositionSM(StateMachine):
             move = ga.gcode_move_to_ds(r, c, True)
 
             if li.multiline_mdi_loop(move):
+                ds.add_one(r, c)
                 self.ptd = True
+
+                self.pth = False
+                self.htp = False
+                self.cth = False
+                self.dth = False
+                self.ctp = False
+                self.dtc = False
+
                 return self.ptd
             
         self.ptd = False
@@ -336,6 +365,14 @@ class PositionSM(StateMachine):
 
             if li.multiline_mdi_loop(move):
                 self.dtc = True
+
+                self.pth = False
+                self.htp = False
+                self.cth = False
+                self.dth = False
+                self.ptd = False
+                self.ctp = False
+
                 return self.dtc
             
         self.dtc = False
@@ -363,7 +400,7 @@ def main():
         li.send_mdi_line("G92.1")
 
     err_flag = 0
-    num = 1
+    num = 2
 
     p.activate_initial_state()
     m.activate_initial_state()
@@ -372,45 +409,47 @@ def main():
     err_flag |= check_transition(p.Printer, False)
     if (err_flag & (1 << 4)): print(bin(err_flag))
 
+    m.send("grab", p=p)
+    err_flag |= check_transition(m.Full, True)
+    if (err_flag & (1 << 4)): print(bin(err_flag))
+
+    print("DS Storage: " + str(ds.get_storage()))
+
+    p.send("printer_dirty", m=m)
+    err_flag |= check_transition(p.DirtyS, False)
+    if (err_flag & (1 << 4)): print(err_flag)
+
+    print("Hi")
+
+    m.send("release", p=p)
+    err_flag |= check_transition(m.Empty, True)
+    if (err_flag & (1 << 4)): print(err_flag)
+
+    print("DS Storage: " + str(ds.get_storage()))
+
+    p.send("dirty_clean", m=m)
+    err_flag |= check_transition(p.CleanS, False)
+    if (err_flag & (1 << 4)): print(err_flag)
+
+    print("CS Storage: " + str(cs.get_amount()))
+
+    m.send("grab", p=p)
+    err_flag |= check_transition(m.Full, True)
+    if (err_flag & (1 << 4)): print(err_flag)
+
+    print("CS Storage: " + str(cs.get_amount()))
+
+    p.send("clean_printer", m=m, number=num)
+    err_flag |= check_transition(p.Printer, False)
+    if (err_flag & (1 << 4)): print(err_flag)
+
+    m.send("release", p=p)
+    err_flag |= check_transition(m.Empty, True)
+    if (err_flag & (1 << 4)): print(err_flag)
+
     p.send("printer_home", m=m, number=num)
     err_flag |= check_transition(p.Printer, False)
     if (err_flag & (1 << 4)): print(bin(err_flag))
-
-    # m.send("grab", p=p)
-    # err_flag |= check_transition(m.Full, True)
-    # if (err_flag & (1 << 4)): print(err_flag)
-
-    # print("DS Storage: " + str(ds.get_storage()))
-
-    # p.send("go_dirty", m=m)
-    # err_flag |= check_transition(p.DirtyS, False)
-    # if (err_flag & (1 << 4)): print(err_flag)
-
-    # m.send("release", p=p)
-    # err_flag |= check_transition(m.Empty, True)
-    # if (err_flag & (1 << 4)): print(err_flag)
-
-    # print("DS Storage: " + str(ds.get_storage()))
-
-    # p.send("go_clean", m=m)
-    # err_flag |= check_transition(p.CleanS, False)
-    # if (err_flag & (1 << 4)): print(err_flag)
-
-    # print("CS Storage: " + str(cs.get_amount()))
-
-    # m.send("grab", p=p)
-    # err_flag |= check_transition(m.Full, True)
-    # if (err_flag & (1 << 4)): print(err_flag)
-
-    # print("CS Storage: " + str(cs.get_amount()))
-
-    # p.send("go_printer", m=m, number=num)
-    # err_flag |= check_transition(p.Printer, False)
-    # if (err_flag & (1 << 4)): print(err_flag)
-
-    # m.send("release", p=p)
-    # err_flag |= check_transition(m.Empty, True)
-    # if (err_flag & (1 << 4)): print(err_flag)
     
 
 if __name__ == "__main__":

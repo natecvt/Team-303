@@ -244,16 +244,16 @@ def main():
         print("Linuxcnc failed to initialize properly")
         exit(1)
     
-    if (home_all_axes()):
-        send_mdi_line("G92.1")
-        #set_state_resting()
-        #set_state_active()
-        print("Sample MDI sucessful")
+    send_mdi_line("G92.1") # should fail
+    set_state_resting()
+    set_state_active()
+    send_mdi_line("G90")
+    send_mdi_line("G01 X100.0 F1000")
+    print("Sample MDI sucessful")
 
-        check_spindle(100.0)
+    check_spindle(100.0)
 
-    if home_all_axes():
-        print("Successful Test")
+    print("Successful Test")
 
 
 if __name__ == "__main__":

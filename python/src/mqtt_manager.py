@@ -51,11 +51,11 @@ def connect(host, port=1883, ka=60):
     return True
 
 # can be done on the worker thread, since this does not require a loop_forever() call
-def publish_error(msg=str(error_message), host=MQTT_IP, port=1883, ka=60):
-    pub.single(TOPIC_E, payload=msg, hostname=host, port=port, keepalive=ka)
+def publish_error(msg=error_message, host=MQTT_IP, port=1883, ka=60):
+    pub.single(TOPIC_E, payload=str(msg), hostname=host, port=port, keepalive=ka)
 
-def publish_complete(msg=str(sc_message), host=MQTT_IP, port=1883, ka=60):
-    pub.single(TOPIC_C, payload=msg, hostname=host, port=port, keepalive=ka)
+def publish_complete(msg=sc_message, host=MQTT_IP, port=1883, ka=60):
+    pub.single(TOPIC_C, payload=str(msg), hostname=host, port=port, keepalive=ka)
 
 def main():
     if (assign_callbacks(on_message, on_connect)):

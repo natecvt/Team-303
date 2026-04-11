@@ -20,8 +20,8 @@ clean_plate_axis: v
 clean_plate_distance: 215.0
 cs_amount: 5
 cs_coords:
-  x: 2352.0
-  y: 718.0
+  x: 2358.0
+  y: 708.0
 cs_grab_z: 346.0
 cs_tag_id: 0
 
@@ -30,8 +30,8 @@ ds_angle: -13.0
 ds_rows: 4
 ds_cols: 7
 ds_coords:
-  x: 400.0
-  y: 781.0
+  x: 394.0
+  y: 785.0
 ds_dx: 278.0
 ds_dy: -80.0
 ds_release_z: 375.0
@@ -119,7 +119,7 @@ printer_coords:
     x: 1815.0
     y: 0.0
   2: 
-    x: 493.0
+    x: 488.0
     y: 1110.0
   3:
     x: 0.1
@@ -153,3 +153,5 @@ printer_coords:
     y: 0.1
 
 printer_plate_z: 340.0
+
+feed_rate: 2000.0
