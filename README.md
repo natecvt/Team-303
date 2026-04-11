@@ -6,16 +6,18 @@ Message Queuing Telemetry Transport (MQTT) is used to send and receive messages 
 - `print_complete` (Received): client software sends this message to our application to initiate a bed swap
 - `storage_reset` (Received): client software sends this message to tell program if storage has been manually reset
 - `swap_complete` (Sent): send this to the client once a swap is completed
+- `acknowledgement` (Sent): sent to client upon receiving a message
 - `error` (Sent): send this to the client if a swap encounters an error, under the following conditions:
   - Full plate storage full
   - LinuxCNC encounters and error
   - State changes fail
   - Others
+- `heartbeat` (Sent): signal sent at a set rate
  
 Each message is a json-encoded string that can be parsed for data. 
 
 ## Multithreading
-Two threads are used in this system: the main control and handling thread `worker`, and the MQTT message handler `messager`. The `worker` thread targets the `main_loop()`, which is used to parse the message, complete the bed swap, and checks for errors. The `messager` thread targets the `loop_forever()` function, used on the MQTT client to check for messages. A `Queue` object is used to share messages between threads. If a message is received, it is added to the queue. If a message is processed by the `worker` thread, it is removed. If an error occurs, it is re-added to the end of the queue for later processing.
+Three threads are used in this system: the main control and handling thread `worker`, the hearbeat signal thread `heartbeat`, and the MQTT message handler `messager`. The `worker` thread targets the `main_loop()`, which is used to parse the message, complete the bed swap, and checks for errors. The `messager` thread targets the `loop_forever()` function, used on the MQTT client to check for messages. A `Queue` object is used to share messages between threads. If a message is received, it is added to the queue. If a message is processed by the `worker` thread, it is removed. If an error occurs, it is re-added to the end of the queue for later processing. The heartbeat publishes status periodically, taking state information from a different queue.
  
 ## Control - LinuxCNC
 LinuxCNC is used to control the motion of the system, as realtime capabilities are required for precise control on the Raspberry Pi. The compatible distro was installed to an SD card from [here](https://linuxcnc.org/downloads/). The [Byte2Bot](https://byte2bot.com/products/parallel-port-raspberry-pi-hat) 5-Axis CNC breakout and Parallel Port Hat are used to interface to hardware. The pins are mapped similar to the image with a few differences:
