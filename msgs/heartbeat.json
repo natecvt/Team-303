@@ -1,4 +1,5 @@
 {
+  "event_type": "HEARTBEAT",
   "status": "online",
   "timestamp": "2026-04-09T14:32:15.123456-04:00"
 }

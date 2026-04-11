@@ -4,6 +4,7 @@ from config import config
 from storage_tracker import ds, cs
 import queue_jobs as qj
 import mqtt_manager as mq
+import mqtt_send_types as mt
 import json_msg_parser as js
 import gantry_actions as ga
 
@@ -35,11 +36,16 @@ def main_loop():
     err_flag: int = 0
     coords = {"x": 0.0, "y": 0.0}
 
+    mq.heartbeat_q.put(mt.STATUS[0])
+
     m.activate_initial_state()
     p.activate_initial_state()
 
     while True:
         if (err_flag & ERROR_MASK) > 0:
+            print(f"Errors Code: {bin(err_flag)}")
+
+            mq.heartbeat_q.put(mt.STATUS[1])
             mq.recieved_q.put(msg) # append earlier message to end of list for retry
             mq.error_message.fill_data("ERROR",
                                        err_flag,
@@ -67,12 +73,22 @@ def main_loop():
 
         if (js.get_event(msg) == js.EVENT_SR):
 
+            mq.ak_msg.fill_data(message="Storage Reset Prompt Received",
+                                status=mt.STATUS[2])
+            mq.publish_message(mq.ak_msg, mq.TOPIC_A)
+
             amount = js.storage_reset_get_amount(msg)
             cs.reset(amount)
             ds.reset()
             continue
 
-        num  = js.printer_get_number(msg)
+        if (js.get_event(msg) == js.EVENT_PC):
+
+            mq.ak_msg.fill_data(message=f"Print Complete Received ID {js.printer_get_number(msg)}",
+                                status=mt.STATUS[0])
+            mq.publish_message(mq.ak_msg, mq.TOPIC_A)
+
+        num: int  = js.printer_get_number(msg)
 
         mq.sc_message.update_time() # for calculating delta T
 
@@ -86,64 +102,67 @@ def main_loop():
             err_flag |= (1 << 4) # set return early bit
             continue
 
-        if not (err_flag & (1 << 4)):
-            flow = err_flag & (1 << 3)
-            print("Error state nominal")
-            print(f"Processing plate replacement from printer {num}")
+        if (err_flag & (1 << 4)):
+           print(f"Initial Errors Code: {bin(err_flag)}")
+           continue 
+        
+        flow = err_flag & (1 << 3)
+        print("Error state nominal")
+        print(f"Processing plate replacement from printer {num}")
 
-            if flow == FLOW_CS_OK:
-                p.send("go_printer", m=m, number=num)
-                err_flag |= check_transition(p.Printer, False)
-                if (err_flag & (1 << 4)): continue
+        if flow == FLOW_CS_OK:
+            p.send("go_printer", m=m, number=num)
+            err_flag |= check_transition(p.Printer, False)
+            if (err_flag & (1 << 4)): continue
 
-                m.send("grab", p=p)
-                err_flag |= check_transition(m.Full, True)
-                if (err_flag & (1 << 4)): continue
+            m.send("grab", p=p)
+            err_flag |= check_transition(m.Full, True)
+            if (err_flag & (1 << 4)): continue
 
-                p.send("go_dirty", m=m)
-                err_flag |= check_transition(p.DirtyS, False)
-                if (err_flag & (1 << 4)): continue
+            p.send("go_dirty", m=m)
+            err_flag |= check_transition(p.DirtyS, False)
+            if (err_flag & (1 << 4)): continue
 
-                m.send("release", p=p)
-                err_flag |= check_transition(m.Empty, True)
-                if (err_flag & (1 << 4)): continue
+            m.send("release", p=p)
+            err_flag |= check_transition(m.Empty, True)
+            if (err_flag & (1 << 4)): continue
 
-                p.send("go_clean", m=m)
-                err_flag |= check_transition(p.CleanS, False)
-                if (err_flag & (1 << 4)): continue
+            p.send("go_clean", m=m)
+            err_flag |= check_transition(p.CleanS, False)
+            if (err_flag & (1 << 4)): continue
 
-                m.send("grab", p=p)
-                err_flag |= check_transition(m.Full, True)
-                if (err_flag & (1 << 4)): continue
+            m.send("grab", p=p)
+            err_flag |= check_transition(m.Full, True)
+            if (err_flag & (1 << 4)): continue
 
-                p.send("go_printer", m=m, number=num)
-                err_flag |= check_transition(p.Printer, False)
-                if (err_flag & (1 << 4)): continue
+            p.send("go_printer", m=m, number=num)
+            err_flag |= check_transition(p.Printer, False)
+            if (err_flag & (1 << 4)): continue
 
-                m.send("release", p=p)
-                err_flag |= check_transition(m.Empty, True)
-                if (err_flag & (1 << 4)): continue
-            
-            else:
-                print("Clean storage empty, proceeding without plate replacement")
+            m.send("release", p=p)
+            err_flag |= check_transition(m.Empty, True)
+            if (err_flag & (1 << 4)): continue
+        
+        else:
+            print("Clean storage empty, proceeding without plate replacement")
 
-                p.send("go_printer", m=m, number=num)
-                err_flag |= check_transition(p.Printer, False)
-                if (err_flag & (1 << 4)): continue
+            p.send("go_printer", m=m, number=num)
+            err_flag |= check_transition(p.Printer, False)
+            if (err_flag & (1 << 4)): continue
 
-                m.send("grab", p=p)
-                err_flag |= check_transition(m.Full, True)
-                if (err_flag & (1 << 4)): continue
+            m.send("grab", p=p)
+            err_flag |= check_transition(m.Full, True)
+            if (err_flag & (1 << 4)): continue
 
-                p.send("go_dirty", m=m)
-                err_flag |= check_transition(p.DirtyS, False)
-                if (err_flag & (1 << 4)): continue
+            p.send("go_dirty", m=m)
+            err_flag |= check_transition(p.DirtyS, False)
+            if (err_flag & (1 << 4)): continue
 
-                m.send("release", p=p)
-                err_flag |= check_transition(m.Empty, True)
-                if (err_flag & (1 << 4)): continue
+            m.send("release", p=p)
+            err_flag |= check_transition(m.Empty, True)
+            if (err_flag & (1 << 4)): continue
 
-                pass
+            pass
         
         print("Swap Complete, moving to next item in queue")
         mq.sc_message.fill_data(num,
@@ -167,10 +186,6 @@ def main():
         exit(1)
 
     # mqtt
-    if not mq.assign_callbacks(on_msg=mq.on_message, on_con=mq.on_connect):
-        print("MQTT callbacks not created correctly")
-        exit(2)
-
     ip = config["mqtt_broker_ip"]
     print(f"MQTT IP Address: {ip}")
     port = 1883
@@ -181,10 +196,11 @@ def main():
     # seperate worker and mqtt threads
     mt = qj.create_message_thread()
     lt = qj.create_main_loop_thread(main_loop)
+    ht = qj.create_heartbeat_thread(qj.heartbeat_loop)
 
     if (lt.name == "worker"):
         print("starting threads...")
-        qj.start_threads([mt, lt])
+        qj.start_threads([mt, lt, ht])
     else:
         print("Threads not created correctly")
         exit(3)

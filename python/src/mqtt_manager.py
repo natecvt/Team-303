@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as pub
-from mqtt_send_types import Error, SwapComplete
+from mqtt_send_types import Message, Error, SwapComplete, HeartBeat, Acknowledgement
 import json_msg_parser as jmp
 from pathlib import Path
 import queue
@@ -14,15 +14,19 @@ except:
     exit(1)
 
 TOPIC_R: str = config["mqtt_received_topic"]
+TOPIC_A: str = config["mqtt_acknowledge_topic"]
 TOPIC_E: str = config["mqtt_error_topic"]
 TOPIC_C: str = config["mqtt_complete_topic"]
+TOPIC_H: str = config["mqtt_heartbeat_topic"]
 MQTT_IP: str = config["mqtt_broker_ip"]
 
-error_message = Error()
-sc_message = SwapComplete()
+e_msg = Error()
+sc_msg = SwapComplete()
+hb_msg = HeartBeat()
+ak_msg = Acknowledgement()
 
 recieved_q = queue.Queue()
-send_q = queue.Queue()
+heartbeat_q = queue.Queue()
 
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
@@ -34,14 +38,8 @@ def on_message(client, userdata, msg):
     print("Received message")
     recieved_q.put(msg.payload)
 
-def assign_callbacks(on_msg, on_con) -> bool:
-    
-    if (callable(on_msg) and callable(on_con)):
-        mqttc.on_connect = on_con
-        mqttc.on_message = on_msg
-        return True
-    
-    return False
+mqttc.on_connect = on_connect
+mqttc.on_message = on_message
 
 def connect(host, port=1883, ka=60):
     errc = mqttc.connect(host, port, ka)
@@ -51,17 +49,11 @@ def connect(host, port=1883, ka=60):
     return True
 
 # can be done on the worker thread, since this does not require a loop_forever() call
-def publish_error(msg=error_message, host=MQTT_IP, port=1883, ka=60):
-    pub.single(TOPIC_E, payload=str(msg), hostname=host, port=port, keepalive=ka)
-
-def publish_complete(msg=sc_message, host=MQTT_IP, port=1883, ka=60):
-    pub.single(TOPIC_C, payload=str(msg), hostname=host, port=port, keepalive=ka)
+def publish_message(msg: Message, topic: str,  host=MQTT_IP, port=1883, ka=60):
+    pub.single(topic, payload=str(msg), hostname=host, port=port, keepalive=ka)
 
 def main():
-    if (assign_callbacks(on_message, on_connect)):
-        connect("localhost")
-        mqttc.loop_forever()
-    
+    mqttc.connect()
 
 if __name__ == "__main__":
     main()

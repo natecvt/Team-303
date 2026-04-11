@@ -8,8 +8,20 @@ SEVERITY = {
     2: "ERROR"
 }
 
+STATUS = {
+    0: "NORMAL",
+    1: "ERROR",
+    2: "STORAGE_RESET"
+}
 
-class Error:
+class Message:
+    contents: dict
+
+    def __str__(self):
+        return json.dumps(self.contents, indent=4)
+
+
+class Error(Message):
     contents = {
         "event_type": "ERROR",
         "error_code": int,
@@ -24,12 +36,6 @@ class Error:
         "message": str,
         "severity": str
     }
-
-    def __init__(self):
-        pass
-
-    def __str__(self):
-        return json.dumps(self.contents, indent=4)
     
     def error_message(self, err_flag: int) -> str:
         msg_lookup = {1 : "Wrong printer number\n",
@@ -57,7 +63,7 @@ class Error:
                   statem=contents["at"]["statem"],
                   message=contents["message"]):
         
-        self.contents["timestamp"] = str(datetime.now().time())
+        self.contents["timestamp"] = datetime.now().time().isoformat()
         self.contents["severity"] = severity
         self.contents["error_code"] = error_code
         self.contents["source"] = source
@@ -66,7 +72,7 @@ class Error:
         self.contents["at"]["statem"] = statem
         self.contents["message"] = message
 
-class SwapComplete:
+class SwapComplete(Message):
     contents = {
         "event_type": "SWAP_COMPLETE",
         "timestamp": str,
@@ -90,10 +96,6 @@ class SwapComplete:
 
     def __init__(self):
         self.update_time()
-        pass
-
-    def __str__(self):
-        return json.dumps(self.contents, indent=4)
     
     def update_time(self):
         t = datetime.now()
@@ -107,17 +109,53 @@ class SwapComplete:
         
         t = datetime.now()
 
-        self.contents["timestamp"] = str(t.time())
+        self.contents["timestamp"] = t.isoformat()
         self.contents["printer"]["id"] = id
         self.contents["operation"]["duration_s"] = t.second + t.minute * 60 - self.__creation_time
         self.contents["gantry"]["location"] = location
         self.contents["gantry"]["statep"] = statep
         self.contents["gantry"]["statem"] = statem
 
+class HeartBeat(Message):
+    contents = {
+        "event_type": "HEARTBEAT",
+        "status": str,
+        "timestamp": str,
+    }
+
+    def __init__(self):
+        pass
+
+    def fill_data(self,
+                  status=contents["status"]):
+        
+        self.contents["status"] = status
+        self.contents["timestamp"] = datetime.now().isoformat()
+
+class Acknowledgement(Message):
+    contents = {
+        "event_type": "ACKNOWLEDGEMENT",
+        "status": str,
+        "message": str,
+        "timestamp": str
+    }
+
+    def fill_data(self,
+                  status=contents["status"],
+                  message=contents["message"],
+                  printer_id=contents["printer_id"],
+                  grid_location=contents["grid_location"]):
+        
+        self.contents["status"] = status
+        self.contents["message"] = message
+        self.contents["printer_id"] = printer_id
+        self.contents["grid_location"] = grid_location
+        self.contents["timestamp"] = datetime.now().isoformat()
+
 def main():
     sc = SwapComplete()
 
-    time.sleep(110.0)
+    time.sleep(10.0)
 
     sc.fill_data(2, {"x": 234.4, "y": 64.6}, "Home", "Empty")
 

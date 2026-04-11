@@ -1,6 +1,7 @@
 {
+  "event_type": "SWAP_COMPLETE",
   "status": "completed",
-  "printer_name": "2",
+  "printer_id": "2",
   "grid_location": "2E",
   "timestamp": "2026-04-09T14:37:45.200000-04:00"
 }

@@ -1,8 +1,10 @@
 from threading import Thread, Lock
-import yaml
+from config import config
 import time
 
 import mqtt_manager as mqr
+
+HEARTBEAT_DT = config["heartbeat_interval"]
 
 def create_message_thread() -> Thread:
     return Thread(target=mqr.mqttc.loop_forever, name="messager")
@@ -10,6 +12,12 @@ def create_message_thread() -> Thread:
 def create_main_loop_thread(main_loop) -> Thread:
     if callable(main_loop):
         return Thread(target=main_loop, name="worker")
+    
+    return Thread()
+
+def create_heartbeat_thread(heartbeat_loop) -> Thread:
+    if callable(heartbeat_loop):
+        return Thread(target=heartbeat_loop, name="heartbeat")
     
     return Thread()
 
@@ -25,9 +33,17 @@ def test_loop():
         time.sleep(5.0)
         mqr.recieved_q.task_done()
 
+def heartbeat_loop():
+    while True:
+        time.sleep(HEARTBEAT_DT)
+
+        if not mqr.heartbeat_q.all_tasks_done():
+            mqr.hb_msg.fill_data(status=mqr.heartbeat_q.get())
+
+        mqr.publish_message(mqr.hb_msg, mqr.TOPIC_H)
+
 def main():
-    if (mqr.assign_callbacks(mqr.on_message, mqr.on_connect)):
-        mqr.connect("localhost")
+    mqr.connect("localhost")
 
     mt = create_message_thread()
     lt = create_main_loop_thread(test_loop)
