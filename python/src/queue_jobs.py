@@ -4,7 +4,7 @@ import time
 
 import mqtt_manager as mqr
 
-HEARTBEAT_DT = config["heartbeat_interval"]
+HEARTBEAT_DT = config["heartbeat_duration"]
 
 def create_message_thread() -> Thread:
     return Thread(target=mqr.mqttc.loop_forever, name="messager")
@@ -37,7 +37,7 @@ def heartbeat_loop():
     while True:
         time.sleep(HEARTBEAT_DT)
 
-        if not mqr.heartbeat_q.all_tasks_done():
+        if not mqr.heartbeat_q.empty():
             mqr.hb_msg.fill_data(status=mqr.heartbeat_q.get())
 
         mqr.publish_message(mqr.hb_msg, mqr.TOPIC_H)

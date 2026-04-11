@@ -81,7 +81,6 @@ class ManipulatorSM(StateMachine):
                 move.extend(ga.gcode_close_door(True, False))
                 
             if (li.multiline_mdi_loop(move)):
-                print("Hi")
                 self.fte = True
                 self.etf = False
                 return self.fte
@@ -418,8 +417,6 @@ def main():
     p.send("printer_dirty", m=m)
     err_flag |= check_transition(p.DirtyS, False)
     if (err_flag & (1 << 4)): print(err_flag)
-
-    print("Hi")
 
     m.send("release", p=p)
     err_flag |= check_transition(m.Empty, True)

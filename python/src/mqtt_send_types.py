@@ -24,17 +24,17 @@ class Message:
 class Error(Message):
     contents = {
         "event_type": "ERROR",
-        "error_code": int,
-        "timestamp": str,
-        "source": str,
+        "error_code": 0,
+        "timestamp": "",
+        "source": "",
         "at": {
-            "statep": str,
-            "statem": str,
-            "location": dict
+            "statep": "",
+            "statem": "",
+            "location": {}
         },
 
-        "message": str,
-        "severity": str
+        "message": "",
+        "severity": ""
     }
     
     def error_message(self, err_flag: int) -> str:
@@ -50,7 +50,7 @@ class Error(Message):
         msg = ""
         for i in range(err_flag.bit_length()):
             if err_flag & (1 << i):
-                msg += msg_lookup[i]
+                msg += msg_lookup[i+1]
 
         return msg
 
@@ -75,20 +75,20 @@ class Error(Message):
 class SwapComplete(Message):
     contents = {
         "event_type": "SWAP_COMPLETE",
-        "timestamp": str,
+        "timestamp": "",
         "printer": {
-            "id": int
+            "id": 0
         },
 
         "operation": {
             "status": "SUCCESS",
-            "duration_s": int,
+            "duration_s": 0,
         },
 
         "gantry": {
-            "statep": str,
-            "statem": str,
-            "location": dict
+            "statep": "",
+            "statem": "",
+            "location": {}
         }
     }
 
@@ -119,8 +119,8 @@ class SwapComplete(Message):
 class HeartBeat(Message):
     contents = {
         "event_type": "HEARTBEAT",
-        "status": str,
-        "timestamp": str,
+        "status": "",
+        "timestamp": "",
     }
 
     def __init__(self):
@@ -135,21 +135,17 @@ class HeartBeat(Message):
 class Acknowledgement(Message):
     contents = {
         "event_type": "ACKNOWLEDGEMENT",
-        "status": str,
-        "message": str,
-        "timestamp": str
+        "status": "",
+        "message": "",
+        "timestamp": ""
     }
 
     def fill_data(self,
                   status=contents["status"],
-                  message=contents["message"],
-                  printer_id=contents["printer_id"],
-                  grid_location=contents["grid_location"]):
+                  message=contents["message"]):
         
         self.contents["status"] = status
         self.contents["message"] = message
-        self.contents["printer_id"] = printer_id
-        self.contents["grid_location"] = grid_location
         self.contents["timestamp"] = datetime.now().isoformat()
 
 def main():

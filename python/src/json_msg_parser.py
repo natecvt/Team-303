@@ -8,8 +8,8 @@ EVENT_E = "ERROR"
 EVENT_SC = "SWAP_COMPLETE"
 EVENT_SR = "STORAGE_RESET"
 
-def get_event(msg: str) -> str:
-    obj = json.loads(str)
+def get_event(msg: str) -> str | None:
+    obj = json.loads(msg)
 
     if "event_type" in obj.keys():
         return obj["event_type"]
@@ -17,7 +17,7 @@ def get_event(msg: str) -> str:
     return None
 
 def storage_reset_get_amount(msg: str) -> int | None:
-    obj = json.loads(str)
+    obj = json.loads(msg)
 
     if "plate_amount" in obj.keys():
         return obj["plate_amount"]
@@ -25,7 +25,7 @@ def storage_reset_get_amount(msg: str) -> int | None:
     return None
 
 def storage_reset_get_time(msg: str) -> str | None:
-    obj = json.loads(str)
+    obj = json.loads(msg)
 
     if "timestamp" in obj.keys():
         return obj["timestamp"]
@@ -33,9 +33,9 @@ def storage_reset_get_time(msg: str) -> str | None:
     return None
 
 def printer_get_number(msg: str) -> int|None:
-    obj = json.loads(str)
+    obj = json.loads(msg)
 
-    if "printer" in obj.keys():
+    if "printer_id" in obj.keys():
         return obj["printer_id"]
     
     return None

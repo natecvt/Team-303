@@ -9,7 +9,7 @@ import json_msg_parser as js
 import gantry_actions as ga
 
 FLOW_CS_EMPTY = True
-FLOW_CS_OK = True
+FLOW_CS_OK = False
 
 ERROR_MASK = 0b11110111
 
@@ -46,26 +46,29 @@ def main_loop():
             print(f"Errors Code: {bin(err_flag)}")
 
             mq.heartbeat_q.put(mt.STATUS[1])
+            mq.recieved_q.task_done()
             mq.recieved_q.put(msg) # append earlier message to end of list for retry
-            mq.error_message.fill_data("ERROR",
-                                       err_flag,
-                                       "",
-                                       coords,
-                                       str(p.configuration),
-                                       str(m.configuration),
-                                       mq.error_message.error_message(err_flag)
-                                       )
-            mq.publish_error(mq.error_message)
+            mq.e_msg.fill_data(mt.SEVERITY[2],
+                                err_flag,
+                                "",
+                                coords,
+                                str(p.configuration),
+                                str(m.configuration),
+                                mq.e_msg.error_message(err_flag)
+                                )
+            mq.publish_message(mq.e_msg, mq.TOPIC_E)
+            li.time.sleep(10.0)
 
         err_flag = 0
 
-        if (mq.recieved_q.all_tasks_done):
+        if (mq.recieved_q.empty()):
             print("Queue empty")
             li.time.sleep(10.0)
             continue
 
         # get message and parse for printer
-        msg: str = mq.recieved_q.get()
+        msg = mq.recieved_q.get()
+        print(msg)
 
         if (js.get_event(msg) == None):
             print("Bad message")
@@ -88,9 +91,13 @@ def main_loop():
                                 status=mt.STATUS[0])
             mq.publish_message(mq.ak_msg, mq.TOPIC_A)
 
-        num: int  = js.printer_get_number(msg)
+        num = js.printer_get_number(msg)
 
-        mq.sc_message.update_time() # for calculating delta T
+        if num == None:
+            print("Invalid Message")
+            continue
+
+        mq.sc_msg.update_time() # for calculating delta T
 
         # initial errors
         err_flag |= (not (num in ga.PRINTERS.keys())) << 0
@@ -111,66 +118,76 @@ def main_loop():
         print(f"Processing plate replacement from printer {num}")
 
         if flow == FLOW_CS_OK:
-            p.send("go_printer", m=m, number=num)
+            p.send("home_printer", m=m, number=num)
             err_flag |= check_transition(p.Printer, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(bin(err_flag))
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(bin(err_flag))
 
-            p.send("go_dirty", m=m)
+            p.send("printer_dirty", m=m)
             err_flag |= check_transition(p.DirtyS, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
 
-            p.send("go_clean", m=m)
+            p.send("dirty_clean", m=m)
             err_flag |= check_transition(p.CleanS, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
 
-            p.send("go_printer", m=m, number=num)
+            p.send("clean_printer", m=m, number=num)
             err_flag |= check_transition(p.Printer, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
+
+            p.send("printer_home", m=m, number=num)
+            err_flag |= check_transition(p.Printer, False)
+            if (err_flag & (1 << 4)): print(bin(err_flag))
         
         else:
             print("Clean storage empty, proceeding without plate replacement")
 
-            p.send("go_printer", m=m, number=num)
+            p.send("home_printer", m=m, number=num)
             err_flag |= check_transition(p.Printer, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(bin(err_flag))
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(bin(err_flag))
 
-            p.send("go_dirty", m=m)
+            p.send("printer_dirty", m=m)
             err_flag |= check_transition(p.DirtyS, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): print(err_flag)
+
+            p.send("dirty_home", m=m, number=num)
+            err_flag |= check_transition(p.Printer, False)
+            if (err_flag & (1 << 4)): print(bin(err_flag))
 
             pass
         
         print("Swap Complete, moving to next item in queue")
-        mq.sc_message.fill_data(num,
+        mq.sc_msg.fill_data(num,
                                 coords, 
                                 str(p.configuration), 
                                 str(m.configuration)
                                 )
-        mq.publish_complete(mq.sc_message)
+        mq.publish_message(mq.sc_msg, mq.TOPIC_C)
+
+        mq.recieved_q.task_done()
 
 def main():
     # linuxCNC
@@ -199,7 +216,7 @@ def main():
     ht = qj.create_heartbeat_thread(qj.heartbeat_loop)
 
     if (lt.name == "worker"):
-        print("starting threads...")
+        print("Starting threads...")
         qj.start_threads([mt, lt, ht])
     else:
         print("Threads not created correctly")

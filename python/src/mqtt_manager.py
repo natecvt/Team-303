@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
 import paho.mqtt.publish as pub
 from mqtt_send_types import Message, Error, SwapComplete, HeartBeat, Acknowledgement
 import json_msg_parser as jmp
@@ -28,11 +29,11 @@ ak_msg = Acknowledgement()
 recieved_q = queue.Queue()
 heartbeat_q = queue.Queue()
 
-mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+mqttc = mqtt.Client(CallbackAPIVersion.VERSION2)
 
 def on_connect(client, userdata, flags, rc, properties):
     print("Connected with result code " + str(rc))
-    client.subscribe(TOPIC_R)
+    client.subscribe(TOPIC_C)
 
 def on_message(client, userdata, msg):
     print("Received message")
@@ -53,7 +54,7 @@ def publish_message(msg: Message, topic: str,  host=MQTT_IP, port=1883, ka=60):
     pub.single(topic, payload=str(msg), hostname=host, port=port, keepalive=ka)
 
 def main():
-    mqttc.connect()
+    mqttc.connect(MQTT_IP)
 
 if __name__ == "__main__":
     main()
