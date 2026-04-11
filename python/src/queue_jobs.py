@@ -13,6 +13,12 @@ def create_main_loop_thread(main_loop) -> Thread:
     
     return Thread()
 
+def create_heartbeat_thread(heartbeat_loop) -> Thread:
+    if callable(heartbeat_loop):
+        return Thread(target=heartbeat_loop, name="heartbeat")
+    
+    return Thread()
+
 # number of threads should be 2, but can be any number within this function
 def start_threads(threads: list[Thread]):
     for thread in threads:
@@ -25,9 +31,15 @@ def test_loop():
         time.sleep(5.0)
         mqr.recieved_q.task_done()
 
+def heartbeat_loop():
+    while True:
+        if not mqr.heartbeat_q.all_tasks_done():
+            mqr.hb_msg.fill_data(status=mqr.heartbeat_q.get())
+
+        mqr.publish_message(mqr.hb_msg, mqr.TOPIC_H)
+
 def main():
-    if (mqr.assign_callbacks(mqr.on_message, mqr.on_connect)):
-        mqr.connect("localhost")
+    mqr.connect("localhost")
 
     mt = create_message_thread()
     lt = create_main_loop_thread(test_loop)
