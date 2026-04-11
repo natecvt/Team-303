@@ -102,6 +102,7 @@ mqtt_acknowledge_topic: test/ack
 mqtt_error_topic: test/error
 mqtt_received_topic: test/topic
 mqtt_heartbeat_topic: test/heartbeat
+heartbeat_duration: 30.0
 
 printer_tag_ids:
   1: 1
