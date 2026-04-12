@@ -225,7 +225,8 @@ class PositionSM(StateMachine):
         li.c.wait_complete()
 
         if li.home_all_axes():
-            self.pth = li.set_state_resting()
+            self.pth = True
+            li.set_state_resting()
 
             if (self.pth):
                 self.htp = False
@@ -257,7 +258,8 @@ class PositionSM(StateMachine):
         li.c.wait_complete()
 
         if li.home_all_axes():
-            self.dth = li.set_state_resting()
+            self.dth = True
+            li.set_state_resting()
 
             if (self.dth):
                 self.htp = False
@@ -289,7 +291,8 @@ class PositionSM(StateMachine):
         li.c.wait_complete()
 
         if li.home_all_axes():
-            self.cth = li.set_state_resting()
+            self.cth = True
+            li.set_state_resting()
 
             if (self.cth):
                 self.htp = False

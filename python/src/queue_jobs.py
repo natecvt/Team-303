@@ -40,6 +40,8 @@ def heartbeat_loop():
         if not mqr.heartbeat_q.empty():
             mqr.hb_msg.fill_data(status=mqr.heartbeat_q.get())
 
+        mqr.hb_msg.fill_data()
+
         mqr.publish_message(mqr.hb_msg, mqr.TOPIC_H)
 
 def main():

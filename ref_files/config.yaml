@@ -20,8 +20,8 @@ clean_plate_axis: v
 clean_plate_distance: 215.0
 cs_amount: 5
 cs_coords:
-  x: 2358.0
-  y: 708.0
+  x: 2350.0
+  y: 718.0
 cs_grab_z: 346.0
 cs_tag_id: 0
 
@@ -80,13 +80,13 @@ door_into_y: 35.0
 door_close_x_offset: 15.0
 door_radius: 310.0
 door_open_delta:
-  x: -335.0
+  x: -340.0
   y: 0.0
-  z: -285.0
+  z: -280.0
 door_close_delta:
-  x: 320.0
+  x: 325.0
   y: 0.0
-  z: 288.0
+  z: 283.0
 door_to_plate_delta:
   x: -48.0
   y: 70.0

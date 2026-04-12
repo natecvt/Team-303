@@ -33,7 +33,7 @@ mqttc = mqtt.Client(CallbackAPIVersion.VERSION2)
 
 def on_connect(client, userdata, flags, rc, properties):
     print("Connected with result code " + str(rc))
-    client.subscribe(TOPIC_C)
+    client.subscribe(TOPIC_R)
 
 def on_message(client, userdata, msg):
     print("Received message")

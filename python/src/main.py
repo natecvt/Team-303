@@ -99,6 +99,8 @@ def main_loop():
 
         mq.sc_msg.update_time() # for calculating delta T
 
+        li.set_state_active()
+
         # initial errors
         err_flag |= (not (num in ga.PRINTERS.keys())) << 0
         err_flag |= (not li.ok_for_mdi()) << 1
@@ -151,7 +153,7 @@ def main_loop():
             if (err_flag & (1 << 4)): print(err_flag)
 
             p.send("printer_home", m=m, number=num)
-            err_flag |= check_transition(p.Printer, False)
+            err_flag |= check_transition(p.Home, False)
             if (err_flag & (1 << 4)): print(bin(err_flag))
         
         else:
@@ -174,7 +176,7 @@ def main_loop():
             if (err_flag & (1 << 4)): print(err_flag)
 
             p.send("dirty_home", m=m, number=num)
-            err_flag |= check_transition(p.Printer, False)
+            err_flag |= check_transition(p.Home, False)
             if (err_flag & (1 << 4)): print(bin(err_flag))
 
             pass
@@ -199,8 +201,7 @@ def main():
         print("Homing failed")
         exit(1)
 
-    if not (li.ok_for_mdi()):
-        exit(1)
+    #li.set_state_resting()
 
     # mqtt
     ip = config["mqtt_broker_ip"]

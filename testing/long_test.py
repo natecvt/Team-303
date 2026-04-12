@@ -19,7 +19,8 @@ TOPIC_H: str = config["mqtt_heartbeat_topic"]
 MQTT_IP: str = config["mqtt_broker_ip"]
 
 with open("msgs/print_complete.json") as file: 
-    msg = str(json.load(file))
+    msg = json.load(file)
+    msg = json.dumps(msg)
 
 while True:
 
@@ -29,7 +30,7 @@ while True:
 
     time.sleep(sleep_interval)
 
-    pub.single(topic=TOPIC_C, payload=msg, hostname=MQTT_IP)
+    pub.single(topic=TOPIC_R, payload=msg, hostname=MQTT_IP)
 
 
 
