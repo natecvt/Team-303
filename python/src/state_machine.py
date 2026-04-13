@@ -92,6 +92,7 @@ class ManipulatorSM(StateMachine):
 class PositionSM(StateMachine):
     # Define states
     Home = State(initial=True)
+    Error = State()
     Printer = State()
     DirtyS = State()
     CleanS = State()
@@ -103,6 +104,13 @@ class PositionSM(StateMachine):
     Printer.to(Home, cond="pth")
     CleanS.to(Home, cond="cth")
     Printer.to(DirtyS, cond="ptd")
+
+    # Error
+    Home.to(Error, cond="err", on="")
+    Printer.to(Error, cond="err")
+    DirtyS.to(Error, cond="err")
+    CleanS.to(Error, cond="err")
+    Error.to(Home, cond="eth")
 
     home_printer = Home.to.itself(internal=True, on="home_to_printer") 
     clean_printer = CleanS.to.itself(internal=True, on="clean_to_printer")
@@ -119,6 +127,8 @@ class PositionSM(StateMachine):
     dth = False
     ptd = False
     dtc = False
+    err = False
+    eth = False
 
     def require_position(self, allowed_states) -> bool:
         if (self.configuration.__contains__(allowed_states)):
@@ -129,6 +139,11 @@ class PositionSM(StateMachine):
     def placeholder(self):
         print(self.configuration)
         pass
+
+    def error(self):
+        if li.home_all_axes():
+            err = False
+            eth = True
 
     def home_to_printer(self, m: ManipulatorSM, number: int):
         if not (m.require_manipulator(ManipulatorSM.Empty)):
@@ -165,6 +180,7 @@ class PositionSM(StateMachine):
                 self.dth = False
                 self.ptd = False
                 self.dtc = False
+                self.eth = False
 
                 return self.htp
 
@@ -202,6 +218,7 @@ class PositionSM(StateMachine):
                 self.dth = False
                 self.ptd = False
                 self.dtc = False
+                self.eth = False
 
                 return self.ctp
 
@@ -235,6 +252,7 @@ class PositionSM(StateMachine):
                 self.dth = False
                 self.ptd = False
                 self.dtc = False
+                self.eth = False
             
             return self.pth
         
@@ -268,6 +286,7 @@ class PositionSM(StateMachine):
                 self.pth = False
                 self.ptd = False
                 self.dtc = False
+                self.eth = False
 
             return self.dth
         
@@ -301,6 +320,7 @@ class PositionSM(StateMachine):
                 self.pth = False
                 self.ptd = False
                 self.dtc = False
+                self.eth = False
 
             return self.cth
         
@@ -339,6 +359,7 @@ class PositionSM(StateMachine):
                 self.dth = False
                 self.ctp = False
                 self.dtc = False
+                self.eth = False
 
                 return self.ptd
             
@@ -374,6 +395,7 @@ class PositionSM(StateMachine):
                 self.dth = False
                 self.ptd = False
                 self.ctp = False
+                self.eth = False
 
                 return self.dtc
             
@@ -393,6 +415,10 @@ def check_transition(state, is_man: bool) -> int:
     return 0b00010000 + (0b00100000 << is_man)
 
 def main():
+
+    p._graph().write_png("home/natec/Team-303/docs/posgraph.png")
+
+    pass
 
     if (not li.open_linuxcnc()):
         print("Linuxcnc failed to initialize properly")

@@ -101,7 +101,9 @@ mqtt_complete_topic: test/complete
 mqtt_acknowledge_topic: test/ack
 mqtt_error_topic: test/error
 mqtt_received_topic: test/topic
+mqtt_storage_topic: test/storage
 mqtt_heartbeat_topic: test/heartbeat
+mqtt_keepalive: 120
 heartbeat_duration: 30.0
 
 printer_tag_ids:

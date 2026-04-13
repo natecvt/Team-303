@@ -14,6 +14,11 @@ STATUS = {
     2: "STORAGE_RESET"
 }
 
+SC_STATUS = {
+    0: "SUCCESS",
+    1: "SUCCESS_PRINT_NOK"
+}
+
 class Message:
     contents: dict
 
@@ -99,10 +104,11 @@ class SwapComplete(Message):
     
     def update_time(self):
         t = datetime.now()
-        self.__creation_time = t.second + t.minute * 60
+        self.__creation_time = t.second + t.minute * 60 + t.hour * 3600
 
     def fill_data(self, 
                   id=contents["printer"]["id"], 
+                  status=contents["operation"]["status"],
                   location=contents["gantry"]["location"],
                   statep=contents["gantry"]["statep"], 
                   statem=contents["gantry"]["statem"]):
@@ -111,7 +117,8 @@ class SwapComplete(Message):
 
         self.contents["timestamp"] = t.isoformat()
         self.contents["printer"]["id"] = id
-        self.contents["operation"]["duration_s"] = t.second + t.minute * 60 - self.__creation_time
+        self.contents["operation"]["status"] = status
+        self.contents["operation"]["duration_s"] = t.second + t.minute * 60 + t.hour * 3600 - self.__creation_time
         self.contents["gantry"]["location"] = location
         self.contents["gantry"]["statep"] = statep
         self.contents["gantry"]["statem"] = statem

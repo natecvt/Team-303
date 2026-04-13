@@ -34,7 +34,6 @@ def main_loop():
     # 7 CRITICAL manSM failed transition
     # 8 
     err_flag: int = 0
-    coords = {"x": 0.0, "y": 0.0}
 
     mq.heartbeat_q.put(mt.STATUS[0])
 
@@ -45,21 +44,37 @@ def main_loop():
         if (err_flag & ERROR_MASK) > 0:
             print(f"Errors Code: {bin(err_flag)}")
 
+            p.err = True
+
             mq.heartbeat_q.put(mt.STATUS[1])
             mq.recieved_q.task_done()
             mq.recieved_q.put(msg) # append earlier message to end of list for retry
             mq.e_msg.fill_data(mt.SEVERITY[2],
                                 err_flag,
                                 "",
-                                coords,
+                                li.get_coords(),
                                 str(p.configuration),
                                 str(m.configuration),
                                 mq.e_msg.error_message(err_flag)
                                 )
             mq.publish_message(mq.e_msg, mq.TOPIC_E)
+
             li.time.sleep(10.0)
 
         err_flag = 0
+
+        # get storage reset messages first, guarantees best accounting
+        if not (mq.storage_q.empty()):
+            msg = mq.storage_q.get()
+            mq.ak_msg.fill_data(message="Storage Reset Prompt Received",
+                                status=mt.STATUS[2])
+            mq.publish_message(mq.ak_msg, mq.TOPIC_A)
+
+            amount = js.storage_reset_get_amount(msg)
+            cs.reset(amount)
+            ds.reset()
+            mq.storage_q.task_done()
+            # do not continue here, could be a message in the other queue
 
         if (mq.recieved_q.empty()):
             print("Queue empty")
@@ -74,17 +89,7 @@ def main_loop():
             print("Bad message")
             continue
 
-        if (js.get_event(msg) == js.EVENT_SR):
-
-            mq.ak_msg.fill_data(message="Storage Reset Prompt Received",
-                                status=mt.STATUS[2])
-            mq.publish_message(mq.ak_msg, mq.TOPIC_A)
-
-            amount = js.storage_reset_get_amount(msg)
-            cs.reset(amount)
-            ds.reset()
-            continue
-
+        # get event and publish ack
         if (js.get_event(msg) == js.EVENT_PC):
 
             mq.ak_msg.fill_data(message=f"Print Complete Received ID {js.printer_get_number(msg)}",
@@ -108,7 +113,7 @@ def main_loop():
         err_flag |= (cs.is_empty()) << 3
 
         if err_flag & 0b0111 > 0:
-            err_flag |= (1 << 4) # set return early bit
+            err_flag |= (1 << 4) # set return early bit if errors 0-2 happen
             continue
 
         if (err_flag & (1 << 4)):
@@ -178,15 +183,14 @@ def main_loop():
             p.send("dirty_home", m=m, number=num)
             err_flag |= check_transition(p.Home, False)
             if (err_flag & (1 << 4)): print(bin(err_flag))
-
-            pass
         
         print("Swap Complete, moving to next item in queue")
         mq.sc_msg.fill_data(num,
-                                coords, 
-                                str(p.configuration), 
-                                str(m.configuration)
-                                )
+                            li.get_coords(), 
+                            mt.SC_STATUS[not flow],
+                            str(p.configuration), 
+                            str(m.configuration)
+                            )
         mq.publish_message(mq.sc_msg, mq.TOPIC_C)
 
         mq.recieved_q.task_done()

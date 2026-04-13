@@ -207,7 +207,7 @@ def send_mdi_line(code: str) -> int:
         rc = 1
     
     if handle_errors():
-        rc = 0
+        rc = 1
     
     return rc
 
@@ -238,6 +238,11 @@ def check_z_is_zero() -> bool:
         return True
     
     return False
+
+def get_coords() -> dict:
+    s.poll()
+    axes = s.actual_position
+    return {"x": axes[0], "y": axes[1], "z": axes[2], config["clean_plate_axis"]: axes[3], config["gripper_axis"]: axes[4]}
 
 def main():
     if (not open_linuxcnc()):
