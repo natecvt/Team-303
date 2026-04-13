@@ -106,10 +106,10 @@ class PositionSM(StateMachine):
     Printer.to(DirtyS, cond="ptd")
 
     # Error
-    Home.to(Error, cond="err", on="")
-    Printer.to(Error, cond="err")
-    DirtyS.to(Error, cond="err")
-    CleanS.to(Error, cond="err")
+    Home.to(Error, cond="err", on="error")
+    Printer.to(Error, cond="err", on="error")
+    DirtyS.to(Error, cond="err", on="error")
+    CleanS.to(Error, cond="err", on="error")
     Error.to(Home, cond="eth")
 
     home_printer = Home.to.itself(internal=True, on="home_to_printer") 
@@ -142,8 +142,17 @@ class PositionSM(StateMachine):
 
     def error(self):
         if li.home_all_axes():
-            err = False
-            eth = True
+            self.err = False
+
+            self.htp = False
+            self.ctp = False
+            self.pth = False
+            self.cth = False
+            self.dth = False
+            self.ptd = False
+
+            self.dtc = False
+            self.eth = True
 
     def home_to_printer(self, m: ManipulatorSM, number: int):
         if not (m.require_manipulator(ManipulatorSM.Empty)):
@@ -406,76 +415,68 @@ class PositionSM(StateMachine):
 m = ManipulatorSM()
 p = PositionSM()
 
-ERROR_MASK = 0b11110111
-
-def check_transition(state, is_man: bool) -> int:
-    if state.is_active:
-        return 0
-    
-    return 0b00010000 + (0b00100000 << is_man)
-
 def main():
 
-    p._graph().write_png("home/natec/Team-303/docs/posgraph.png")
+    p._graph().write("/home/cnc/Dev/Team-303/docs/posgraph.png", format="png")
 
     pass
 
-    if (not li.open_linuxcnc()):
-        print("Linuxcnc failed to initialize properly")
-        exit(1)
+    # if (not li.open_linuxcnc()):
+    #     print("Linuxcnc failed to initialize properly")
+    #     exit(1)
     
-    if (li.home_all_axes()):
-        li.send_mdi_line("G92.1")
+    # if (li.home_all_axes()):
+    #     li.send_mdi_line("G92.1")
 
-    err_flag = 0
-    num = 2
+    # err_flag = 0
+    # num = 2
 
-    p.activate_initial_state()
-    m.activate_initial_state()
+    # p.activate_initial_state()
+    # m.activate_initial_state()
 
-    p.send("home_printer", m=m, number=num)
-    err_flag |= check_transition(p.Printer, False)
-    if (err_flag & (1 << 4)): print(bin(err_flag))
+    # p.send("home_printer", m=m, number=num)
+    # err_flag |= check_transition(p.Printer, False)
+    # if (err_flag & (1 << 4)): print(bin(err_flag))
 
-    m.send("grab", p=p)
-    err_flag |= check_transition(m.Full, True)
-    if (err_flag & (1 << 4)): print(bin(err_flag))
+    # m.send("grab", p=p)
+    # err_flag |= check_transition(m.Full, True)
+    # if (err_flag & (1 << 4)): print(bin(err_flag))
 
-    print("DS Storage: " + str(ds.get_storage()))
+    # print("DS Storage: " + str(ds.get_storage()))
 
-    p.send("printer_dirty", m=m)
-    err_flag |= check_transition(p.DirtyS, False)
-    if (err_flag & (1 << 4)): print(err_flag)
+    # p.send("printer_dirty", m=m)
+    # err_flag |= check_transition(p.DirtyS, False)
+    # if (err_flag & (1 << 4)): print(err_flag)
 
-    m.send("release", p=p)
-    err_flag |= check_transition(m.Empty, True)
-    if (err_flag & (1 << 4)): print(err_flag)
+    # m.send("release", p=p)
+    # err_flag |= check_transition(m.Empty, True)
+    # if (err_flag & (1 << 4)): print(err_flag)
 
-    print("DS Storage: " + str(ds.get_storage()))
+    # print("DS Storage: " + str(ds.get_storage()))
 
-    p.send("dirty_clean", m=m)
-    err_flag |= check_transition(p.CleanS, False)
-    if (err_flag & (1 << 4)): print(err_flag)
+    # p.send("dirty_clean", m=m)
+    # err_flag |= check_transition(p.CleanS, False)
+    # if (err_flag & (1 << 4)): print(err_flag)
 
-    print("CS Storage: " + str(cs.get_amount()))
+    # print("CS Storage: " + str(cs.get_amount()))
 
-    m.send("grab", p=p)
-    err_flag |= check_transition(m.Full, True)
-    if (err_flag & (1 << 4)): print(err_flag)
+    # m.send("grab", p=p)
+    # err_flag |= check_transition(m.Full, True)
+    # if (err_flag & (1 << 4)): print(err_flag)
 
-    print("CS Storage: " + str(cs.get_amount()))
+    # print("CS Storage: " + str(cs.get_amount()))
 
-    p.send("clean_printer", m=m, number=num)
-    err_flag |= check_transition(p.Printer, False)
-    if (err_flag & (1 << 4)): print(err_flag)
+    # p.send("clean_printer", m=m, number=num)
+    # err_flag |= check_transition(p.Printer, False)
+    # if (err_flag & (1 << 4)): print(err_flag)
 
-    m.send("release", p=p)
-    err_flag |= check_transition(m.Empty, True)
-    if (err_flag & (1 << 4)): print(err_flag)
+    # m.send("release", p=p)
+    # err_flag |= check_transition(m.Empty, True)
+    # if (err_flag & (1 << 4)): print(err_flag)
 
-    p.send("printer_home", m=m, number=num)
-    err_flag |= check_transition(p.Printer, False)
-    if (err_flag & (1 << 4)): print(bin(err_flag))
+    # p.send("printer_home", m=m, number=num)
+    # err_flag |= check_transition(p.Printer, False)
+    # if (err_flag & (1 << 4)): print(bin(err_flag))
     
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 {
-  "event_type": "SWAP_BED",
+  "event_type": "PRINT_COMPLETE",
   "printer_id": 1,
   "grid_location": "2E",
   "timestamp": "2026-04-09T14:32:15.123456-04:00"

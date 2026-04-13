@@ -65,6 +65,7 @@ def main_loop():
 
         # get storage reset messages first, guarantees best accounting
         if not (mq.storage_q.empty()):
+            print("Storage reset message received")
             msg = mq.storage_q.get()
             mq.ak_msg.fill_data(message="Storage Reset Prompt Received",
                                 status=mt.STATUS[2])
@@ -104,8 +105,6 @@ def main_loop():
 
         mq.sc_msg.update_time() # for calculating delta T
 
-        li.set_state_active()
-
         # initial errors
         err_flag |= (not (num in ga.PRINTERS.keys())) << 0
         err_flag |= (not li.ok_for_mdi()) << 1
@@ -127,67 +126,67 @@ def main_loop():
         if flow == FLOW_CS_OK:
             p.send("home_printer", m=m, number=num)
             err_flag |= check_transition(p.Printer, False)
-            if (err_flag & (1 << 4)): print(bin(err_flag))
+            if (err_flag & (1 << 4)): continue
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): print(bin(err_flag))
+            if (err_flag & (1 << 4)): continue
 
             p.send("printer_dirty", m=m)
             err_flag |= check_transition(p.DirtyS, False)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             p.send("dirty_clean", m=m)
             err_flag |= check_transition(p.CleanS, False)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             p.send("clean_printer", m=m, number=num)
             err_flag |= check_transition(p.Printer, False)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             p.send("printer_home", m=m, number=num)
             err_flag |= check_transition(p.Home, False)
-            if (err_flag & (1 << 4)): print(bin(err_flag))
+            if (err_flag & (1 << 4)): continue
         
         else:
             print("Clean storage empty, proceeding without plate replacement")
 
             p.send("home_printer", m=m, number=num)
             err_flag |= check_transition(p.Printer, False)
-            if (err_flag & (1 << 4)): print(bin(err_flag))
+            if (err_flag & (1 << 4)): continue
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): print(bin(err_flag))
+            if (err_flag & (1 << 4)): continue
 
             p.send("printer_dirty", m=m)
             err_flag |= check_transition(p.DirtyS, False)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): print(err_flag)
+            if (err_flag & (1 << 4)): continue
 
             p.send("dirty_home", m=m, number=num)
             err_flag |= check_transition(p.Home, False)
-            if (err_flag & (1 << 4)): print(bin(err_flag))
+            if (err_flag & (1 << 4)): continue
         
         print("Swap Complete, moving to next item in queue")
         mq.sc_msg.fill_data(num,
+                            mt.SC_STATUS[flow],
                             li.get_coords(), 
-                            mt.SC_STATUS[not flow],
                             str(p.configuration), 
                             str(m.configuration)
                             )

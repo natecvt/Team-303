@@ -30,7 +30,7 @@ ds_angle: -13.0
 ds_rows: 4
 ds_cols: 7
 ds_coords:
-  x: 394.0
+  x: 396.0
   y: 785.0
 ds_dx: 278.0
 ds_dy: -80.0
@@ -89,7 +89,7 @@ door_close_delta:
   z: 283.0
 door_to_plate_delta:
   x: -48.0
-  y: 70.0
+  y: 66.0
   z: 0.0
 
 
@@ -121,7 +121,7 @@ printer_tag_ids:
   12: 12
 printer_coords:
   1: 
-    x: 1815.0
+    x: 1813.0
     y: 0.0
   2: 
     x: 496.0

@@ -153,8 +153,8 @@ def handle_errors() -> bool:
         while s.estop:
             s.poll()
             time.sleep(1.0)
-        rc = True
-        print("EStop unpressed, returning to regular operation")
+        print("EStop unpressed, returning home")
+        return False
     
     # handling not enabled (power off)
     if not (s.enabled):
@@ -206,7 +206,7 @@ def send_mdi_line(code: str) -> int:
         print("State not ok for MDI commands")
         rc = 1
     
-    if handle_errors():
+    if not handle_errors():
         rc = 1
     
     return rc
