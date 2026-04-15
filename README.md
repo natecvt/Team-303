@@ -8,7 +8,7 @@ Message Queuing Telemetry Transport (MQTT) is used to send and receive messages 
 - `swap_complete` (Sent): send this to the client once a swap is completed
 - `acknowledgement` (Sent): sent to client upon receiving a message
 - `error` (Sent): send this to the client if a swap encounters an error, under the following conditions:
-  - Full plate storage full
+  - Full plate storage full (if clean plate is empty, system can still operate)
   - LinuxCNC encounters and error
   - State changes fail
   - Others
@@ -34,7 +34,7 @@ The `ref_files` folder contains a `config.yaml` file that is used to set all of 
 ## State Machines
 Two state machines are used to ensure the system is in the right external configuration: `PositionSM` and `ManipulatorSM`. Each implements methods to control the position and manipulator state and ensure each other are in the right state before continuing an action. The following graph shows the construction of these state machines, generated with `pydot`:
 
-<img width="843" height="243" alt="image" src="https://github.com/user-attachments/assets/dc7eaf3f-a16d-4b53-b54c-6ee641146ba4" />
+<img width="1758" height="404" alt="image" src="https://github.com/user-attachments/assets/69d02e31-5b93-4e18-9fc8-72dde5ceb79e" />
 <img width="374" height="187" alt="image" src="https://github.com/user-attachments/assets/5574a823-d33b-4fca-8857-f5f8996f8fde" />
 
 
