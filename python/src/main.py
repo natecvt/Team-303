@@ -72,6 +72,8 @@ def main_loop():
             mq.publish_message(mq.ak_msg, mq.TOPIC_A)
 
             amount = js.storage_reset_get_amount(msg)
+            if (amount == None):
+                print("Bad message format")
             cs.reset(amount)
             ds.reset()
             mq.storage_q.task_done()
