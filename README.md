@@ -29,7 +29,7 @@ The VFD output PWM pin (P1) outputs an analog voltage from 0-10V, which is used 
 The LinuxCNC python module is used to interface with the program in software. This manages `stat`, `command`, and `error` channels to control the system. Commands are sent through the MDI interface, and `stat` is used to check the result of each successive command. Commands are generated using the data in the `gcode_gen.py` file, compiled into more comprehensive actions in `gantry_actions.py`.
 
 ## Config
-The `ref_files` folder contains a `config.yaml` file that is used to set all of the configurable items in the program. This includes coordinates, motion parameters, MQTT parameters, and other things. See [[config.md]] to see the details of this.
+The `ref_files` folder contains a `config.yaml` file that is used to set all of the configurable items in the program. This includes coordinates, motion parameters, MQTT parameters, and other things. See [config.yaml](https://github.com/natecvt/Team-303/blob/main/ref_files/config.yaml) to see the details of this.
 
 ## State Machines
 Two state machines are used to ensure the system is in the right external configuration: `PositionSM` and `ManipulatorSM`. Each implements methods to control the position and manipulator state and ensure each other are in the right state before continuing an action. The following graph shows the construction of these state machines, generated with `pydot`:
