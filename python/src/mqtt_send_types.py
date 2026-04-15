@@ -16,7 +16,7 @@ STATUS = {
 
 SC_STATUS = {
     0: "SUCCESS",
-    1: "SUCCESS_PRINT_NOK"
+    1: "SUCCESS_PRINT_NOT_OK"
 }
 
 class Message:

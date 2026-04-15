@@ -1,0 +1,16 @@
+[Unit]
+Description=3D Print Farm Automation Service
+After=network.target
+After=graphical.target
+After=rtkit-daemon.service
+After=linuxcnc.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/cnc/Dev/Team-303/python/src/main.py
+WorkingDirectory=/home/cnc/Dev/Team-303
+User=cnc
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
