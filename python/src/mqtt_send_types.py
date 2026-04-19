@@ -50,7 +50,7 @@ class Error(Message):
                     5 : "Returned early, see following messages:\n\t",
                     6 : "Position State Machine failed transition\n",
                     7 : "Manipulator State Machine failed transition\n",
-                    8 : ""}
+                    8 : "Position is at Printer, door state unknown"}
 
         msg = ""
         for i in range(err_flag.bit_length()):

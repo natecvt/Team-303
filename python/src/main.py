@@ -32,7 +32,7 @@ def main_loop():
     # 5 CRITICAL return early? set if 1-3 are not zero (can still do something if clean)
     # 6 CRITICAL posSM failed transition
     # 7 CRITICAL manSM failed transition
-    # 8 
+    # 8 CRITICAL error triggered while at printer, unknown state of door thus cannot home
     err_flag: int = 0
 
     mq.heartbeat_q.put(mt.STATUS[0])
@@ -43,6 +43,9 @@ def main_loop():
     while True:
         if (err_flag & ERROR_MASK) > 0:
             print(f"Errors Code: {bin(err_flag)}")
+
+            if err_flag & 1 << 7:
+                li.manual_on_error()
 
             p.err = True
 
@@ -133,11 +136,15 @@ def main_loop():
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): 
+                err_flag |= 1 << 7
+                continue
 
             p.send("printer_dirty", m=m)
             err_flag |= check_transition(p.DirtyS, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): 
+                err_flag |= 1 << 7
+                continue
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
@@ -157,11 +164,15 @@ def main_loop():
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): 
+                err_flag |= 1 << 7
+                continue
 
             p.send("printer_home", m=m, number=num)
             err_flag |= check_transition(p.Home, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): 
+                err_flag |= 1 << 7
+                continue
         
         else:
             print("Clean storage empty, proceeding without plate replacement")
@@ -172,11 +183,15 @@ def main_loop():
 
             m.send("grab", p=p)
             err_flag |= check_transition(m.Full, True)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): 
+                err_flag |= 1 << 7
+                continue
 
             p.send("printer_dirty", m=m)
             err_flag |= check_transition(p.DirtyS, False)
-            if (err_flag & (1 << 4)): continue
+            if (err_flag & (1 << 4)): 
+                err_flag |= 1 << 7
+                continue
 
             m.send("release", p=p)
             err_flag |= check_transition(m.Empty, True)

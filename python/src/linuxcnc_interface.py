@@ -224,6 +224,23 @@ def multiline_mdi_loop(codes: list[str]) -> bool:
 
     return True
 
+def manual_on_error():
+    print("Relinquishing automatic control until ESTOP pressed and released")
+    s.poll()
+    c.mode(linuxcnc.MODE_MANUAL)
+    c.wait_complete()
+    while not (s.estop):
+        print("Please jog the system out of harm's way, then press ESTOP and release")
+        time.sleep(10.0)
+        s.poll()
+
+    while s.estop:
+        print("Please release ESTOP")
+        time.sleep(10.0)
+        s.poll()
+
+
+
 def check_spindle(speed: float) -> bool:
     s.poll()
     if (s.spindle[0]["enabled"] and s.spindle[0]["speed"] == speed):
