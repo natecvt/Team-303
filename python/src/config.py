@@ -9,12 +9,8 @@ config = yaml.safe_load(file)
 file.close()
 del file
 
-def update_config(config):
-    with open(CONF_PATH, "r") as file:
-        newconfig = yaml.safe_load(file)
-
-        if not (config == newconfig):
-            print("Updated config values")
-            config = newconfig
+def update_config_file(config):
+    with open(CONF_PATH, "w") as file:
+        yaml.safe_dump(config, file)
 
         

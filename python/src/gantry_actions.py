@@ -13,6 +13,7 @@ CS_AXIS: str = config["clean_plate_axis"]
 CS_DIST: float = config["clean_plate_distance"]
 CS_COORDS: dict = config["cs_coords"]
 CS_GRAB_Z: float = config["cs_grab_z"]
+CS_GRAB_Y: float = config["cs_grab_y"]
 
 DS_COORDS: dict = config['ds_coords']
 DS_DX: float = config['ds_dx']
@@ -171,6 +172,7 @@ def gcode_release_plate_printer(z_is_zero: bool, z_dist=PRINTER_GRAB_Z, feed_rat
     if not z_is_zero: 
         code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
     
+    code.append(gg.generate_code({}, 90))
     code.append(gg.generate_code({'x': DOOR_PLATE_DEL['x'], 'y': DOOR_PLATE_DEL['y'], 'f': feed_rate}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
     code.append(gg.generate_code({'z': 3.0 * z_dist / 4.0, 'f': feed_rate}, 1))
@@ -304,8 +306,9 @@ def gcode_grab_plate_cs(z_is_zero: bool, z_dist=CS_GRAB_Z, feed_rate=FEED_RATE) 
     code.append(gg.generate_code({}, 90))
     code.append(gg.generate_code({'s': MAN_ANGLE_N12}, 3, False))
     code.append(gg.generate_code({'z': z_dist, 'f': feed_rate}, 1))
+    code.append(gg.generate_code({'s': MAN_ANGLE_P00}, 3, False))
     code.append(gg.generate_code({}, 91))
-    code.append(gg.generate_code({GRIP_AXIS: GRIP_DOWN}, 1))
+    code.append(gg.generate_code({"y": CS_GRAB_Y, GRIP_AXIS: GRIP_DOWN}, 1))
     code.append(gg.generate_code({}, 90))
     code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
     code.append(gg.generate_code({'s': MAN_ANGLE_P90}, 3, False))

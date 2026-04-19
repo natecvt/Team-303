@@ -109,6 +109,8 @@ def main_loop():
             print("Invalid Message")
             continue
 
+        li.set_state_active()
+
         mq.sc_msg.update_time() # for calculating delta T
 
         # initial errors

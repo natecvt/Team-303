@@ -15,27 +15,34 @@ camera_transform_coeffs:
 - arm_center_x: null
 - arm_center_y: null
 - arm_center_z: null
-
 clean_plate_axis: v
 clean_plate_distance: 215.0
 cs_amount: 5
 cs_coords:
-  x: 2350.0
-  y: 718.0
-cs_grab_z: 346.0
+  x: 2351.735786554431
+  y: 763.6835945561796
+cs_grab_y: -30.0
+cs_grab_z: 349.13215683121234
 cs_tag_id: 0
-
+door_close_delta:
+  x: 325.0
+  y: 0.0
+  z: 283.0
+door_close_x_offset: 15.0
+door_into_y: 35.0
+door_open_delta:
+  x: -340.0
+  y: 0.0
+  z: -280.0
+door_radius: 310.0
+door_to_plate_delta:
+  x: -50.0
+  y: 70.0
+  z: 0.0
+door_z: 392.0
 ds_amount_per: 4
 ds_angle: -13.0
-ds_rows: 4
 ds_cols: 7
-ds_coords:
-  x: 396.0
-  y: 785.0
-ds_dx: 278.0
-ds_dy: -80.0
-ds_release_z: 375.0
-ds_release_dy: -10.0
 ds_cols_coords:
   1:
     x: 0.1
@@ -66,46 +73,37 @@ ds_cols_tag_ids:
   68: 5
   69: 6
   70: 7
-
+ds_coords:
+  x: 394.0
+  y: 785.0
+ds_dx: 278.0
+ds_dy: -80.0
+ds_release_dy: -10.0
+ds_release_z: 375.0
+ds_rows: 4
+feed_rate: 3000.0
 gripper_axis: u
-gripper_down: -11.10
+gripper_down: -11.1
 gripper_up: 9.0
-
+heartbeat_duration: 30.0
+linuxcnc_folder: linuxCNC/team303_machine.ini
+linuxcnc_timeout: 240.0
 manipulator_angle_0: 895.0
 manipulator_angle_90: 100.0
 manipulator_angle_n12: 950.0
-
-door_z: 395.0
-door_into_y: 35.0
-door_close_x_offset: 15.0
-door_radius: 310.0
-door_open_delta:
-  x: -340.0
-  y: 0.0
-  z: -280.0
-door_close_delta:
-  x: 325.0
-  y: 0.0
-  z: 283.0
-door_to_plate_delta:
-  x: -48.0
-  y: 66.0
-  z: 0.0
-
-
-linuxcnc_folder: linuxCNC/team303_machine.ini
-linuxcnc_timeout: 240.0
-
+mqtt_acknowledge_topic: test/ack
 mqtt_broker_ip: localhost
 mqtt_complete_topic: test/complete
-mqtt_acknowledge_topic: test/ack
 mqtt_error_topic: test/error
-mqtt_received_topic: test/topic
-mqtt_storage_topic: test/storage
 mqtt_heartbeat_topic: test/heartbeat
 mqtt_keepalive: 120
-heartbeat_duration: 30.0
-
+mqtt_received_topic: test/topic
+mqtt_storage_topic: test/storage
+printer_coords:
+  2:
+    x: 1887.015173546095
+    y: -5.289912223815918e-06
+printer_plate_z: 340.0
 printer_tag_ids:
   1: 1
   2: 2
@@ -119,44 +117,3 @@ printer_tag_ids:
   10: 10
   11: 11
   12: 12
-printer_coords:
-  1: 
-    x: 1813.0
-    y: 0.0
-  2: 
-    x: 496.0
-    y: 1110.0
-  3:
-    x: 0.1
-    y: 0.1
-  4:
-    x: 0.1 
-    y: 0.1
-  5:
-    x: 0.1
-    y: 0.1
-  6:
-    x: 0.1
-    y: 0.1
-  7:
-    x: 0.1
-    y: 0.1
-  8:
-    x: 0.1
-    y: 0.1
-  9:
-    x: 0.1
-    y: 0.1
-  10:
-    x: 0.1
-    y: 0.1
-  11:
-    x: 0.3
-    y: 0.4
-  12:
-    x: 0.1
-    y: 0.1
-
-printer_plate_z: 340.0
-
-feed_rate: 2000.0
