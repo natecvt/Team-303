@@ -42,7 +42,7 @@ door_to_plate_delta:
 door_z: 392.0
 ds_amount_per: 4
 ds_angle: -13.0
-ds_cols: 7
+ds_cols: 6
 ds_cols_coords:
   1:
     x: 0.1
@@ -74,10 +74,10 @@ ds_cols_tag_ids:
   69: 6
   70: 7
 ds_coords:
-  x: 394.0
-  y: 785.0
-ds_dx: 278.0
-ds_dy: -80.0
+  x: 399.99999518337466
+  y: 775.0000041842844
+ds_dx: 277.9165538343741
+ds_dy: -82.0
 ds_release_dy: -10.0
 ds_release_z: 375.0
 ds_rows: 4
