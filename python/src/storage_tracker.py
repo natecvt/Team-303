@@ -36,7 +36,7 @@ class DirtyShelf:
         self.__dx = dx
         self.__dy = dy
 
-    def add_one(self, row, col) -> bool:
+    def add_one(self, row: int, col: int) -> bool:
         if row > self.__rows-1 or col > self.__cols-1 or row < 0 or col < 0:
             print("Invalid position")
         
@@ -73,7 +73,7 @@ class DirtyShelf:
 
         return [x, y]
     
-    def is_full(self):
+    def is_full(self) -> bool:
         return self.detect_first_free() == [-1, -1]
         
 class CleanDispenser:
