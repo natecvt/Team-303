@@ -254,7 +254,7 @@ def gcode_close_door(z_is_zero: bool, is_second: bool, feed_rate=FEED_RATE) -> l
 
     code.append(gg.generate_code({}, 90))
     
-    code.append(gg.generate_code({'z': 0.0, 'f': feed_rate}, 1))
+    code.append(gg.generate_code({'x': 0.0, 'z': 0.0, 'f': feed_rate}, 1))
 
     # final coords (G92 relative)
     # x = 0.0

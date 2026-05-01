@@ -6,11 +6,13 @@ After=rtkit-daemon.service
 After=linuxcnc.service
 
 [Service]
+Type=forking
 ExecStart=/usr/bin/python3 /home/cnc/Dev/Team-303/python/src/main.py
 WorkingDirectory=/home/cnc/Dev/Team-303
 User=cnc
 Restart=always
 RestartSec=10
+ExecStop=/usr/bin/screen -S session_name -X quit
 
 [Install]
 WantedBy=multi-user.target

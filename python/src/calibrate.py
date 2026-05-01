@@ -1,4 +1,5 @@
 import linuxcnc_interface as li
+import gcode_gen as gg
 from config import config, update_config_file
 
 def main():
@@ -16,6 +17,9 @@ def main():
     print("Setting Servo to Correct Angle")
     li.send_mdi_line("G92 X0 Y0 Z0 U0 V0")
     li.send_mdi_line("G90")
+
+    li.send_mdi_line(f"G01 Z0 U{config['gripper_down']} F3000")
+    li.send_mdi_line(f"G01 Z0 U{config['gripper_down']} F3000")
 
     block = 0
 
@@ -67,16 +71,53 @@ def main():
 
                     print(f"Position Calibration for Printer {i}")
                     print( "-----------------------------------\n")
-                    print("Make Sure the Marked Plate is in this Printer, then:")
+                    print( "Make Sure the Marked Plate is in this Printer, then:")
                     print(f"1. Jog the System to the Printer, open the door, then Jog Z to ~{config['printer_plate_z']}mm")
-                    print("2. Jog the System so the Peg is Centered with the Fork")
-                    print("   and the Manipulator Touches the Bottom of the Plate")
+                    print( "2. Jog the System so the Peg is Centered with the Fork")
+                    print( "   and the Manipulator Touches the Bottom of the Plate")
                     print(f"   If Z={config['printer_plate_z']}mm is Insufficient, Move the Printer")
-                    print("3. Press ENTER when Position is Correct ...")
-                    print("4. (On only 1st Plate) Mark a Reference Point on the Plate with a Marker")
-                    print("   This can be Any Point Where the Fork is in Contact")
-                    print("   All Other Plates Should be Aligned with this Marking\n")
+                    print( "3. Press ENTER when Position is Correct ...")
+                    print( "4. (On only 1st Plate) Mark a Reference Point on the Plate with a Marker")
+                    print( "   This can be Any Point Where the Fork is in Contact")
+                    print( "   All Other Plates Should be Aligned with this Marking\n")
                     input("")
+
+                    print("Simulating Plate Grab...")
+                    li.send_mdi_line(f"G01 Z0 F3000")
+                    li.send_mdi_line(f"G91")
+                    li.send_mdi_line(f"G01 U{config['gripper_up']}")
+                    li.send_mdi_line(f"G90")
+                    li.send_mdi_line(f"G01 Z{config['printer_plate_z']}")
+                    li.send_mdi_line(f"G91")
+                    li.send_mdi_line(f"G01 U{config['gripper_down']}")
+                    li.send_mdi_line(f"G90")
+                    li.send_mdi_line(f"G01 Z0 F3000")
+
+                    print("Was the plate grabbed correctly?")
+                    if (input("y/n: ") == 'n'):
+                        print("Retrying...")
+                        i -= 1
+                        continue
+
+                    print("Simulating Plate Release...")
+                    li.send_mdi_line(gg.generate_code({'s': config['manipulator_angle_0']}, 3, False))
+                    li.send_mdi_line(gg.generate_code({'z': 3.0 * config['printer_plate_z'] / 4.0}, 1))
+                    li.send_mdi_line(gg.generate_code({'s': config['manipulator_angle_n12']}, 3, False))
+                    li.send_mdi_line(gg.generate_code({'z': config['printer_plate_z']}, 1))
+                    
+                    li.send_mdi_line(gg.generate_code({}, 91))
+                    li.send_mdi_line(gg.generate_code({'u': config['gripper_up']}, 1))
+                    li.send_mdi_line(gg.generate_code({}, 90))
+                    li.send_mdi_line(gg.generate_code({'z': 0.0}, 1))
+                    li.send_mdi_line(gg.generate_code({}, 91))
+                    li.send_mdi_line(gg.generate_code({'u': config['gripper_down']}, 1))
+                    li.send_mdi_line(gg.generate_code({}, 90))
+
+                    print("Was the plate released correctly?")
+                    if (input("y/n: ") == 'n'):
+                        print("Retrying...")
+                        i -= 1
+                        continue
 
                     coords = li.get_coords()
                     xy = {"x": coords['x'] - config["door_to_plate_delta"]["x"],
@@ -85,6 +126,18 @@ def main():
                     config["printer_coords"][i] = xy
                     print(f"Position Value for Printer {i} Written")
                     print( "-------------------------------------\n")
+
+                print("Simulating Plate Grab...")
+                li.send_mdi_line(f"G01 Z0 F3000")
+                li.send_mdi_line(f"G91")
+                li.send_mdi_line(f"G01 U{config['gripper_up']}")
+                li.send_mdi_line(f"G90")
+                li.send_mdi_line(f"G01 Z{config['printer_plate_z']}")
+                li.send_mdi_line(f"G91")
+                li.send_mdi_line(f"G01 U{config['gripper_down']}")
+                li.send_mdi_line(f"G90")
+                li.send_mdi_line(f"G01 Z0 F3000")
+                li.send_mdi_line(f"M03 S{config['manipulator_angle_90']}")
 
                 print("Jog System Away and Close All Doors")
                 input("Press ENTER when done")
