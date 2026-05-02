@@ -14,8 +14,6 @@ except:
     print("Path not found")
     exit(1)
 
-TOPIC_R: str = config["mqtt_received_topic"]
-TOPIC_S: str = config["mqtt_storage_topic"]
 TOPIC_A: str = config["mqtt_acknowledge_topic"]
 TOPIC_E: str = config["mqtt_error_topic"]
 TOPIC_C: str = config["mqtt_complete_topic"]
@@ -36,16 +34,16 @@ mqttc = mqtt.Client(CallbackAPIVersion.VERSION2)
 
 def on_connect(client, userdata, flags, rc, properties):
     print("Connected with result code " + str(rc))
-    client.subscribe(TOPIC_R)
-    client.subscribe(TOPIC_S)
+    client.subscribe(config["mqtt_received_topic"])
+    client.subscribe(config["mqtt_storage_topic"])
 
 def on_message(client, userdata, msg):
     print("Received message")
 
-    if msg.topic == TOPIC_R:
+    if msg.topic == config["mqtt_received_topic"]:
         recieved_q.put(msg.payload)
 
-    if msg.topic == TOPIC_S:
+    if msg.topic == config["mqtt_storage_topic"]:
         storage_q.put(msg.payload)
 
 mqttc.on_connect = on_connect

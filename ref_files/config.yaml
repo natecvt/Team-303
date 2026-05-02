@@ -10,11 +10,6 @@ camera_global_transform:
 camera_transform_coeffs:
 - x: -50.0
 - y: -15.0
-- z: 100.0
-- arm_radius: null
-- arm_center_x: null
-- arm_center_y: null
-- arm_center_z: null
 clean_plate_axis: v
 clean_plate_distance: 215.0
 cs_amount: 5
@@ -65,14 +60,6 @@ ds_cols_coords:
   7:
     x: 0.1
     y: 0.1
-ds_cols_tag_ids:
-  64: 1
-  65: 2
-  66: 3
-  67: 4
-  68: 5
-  69: 6
-  70: 7
 ds_coords:
   x: 399.99999518337466
   y: 775.0000041842844
@@ -104,16 +91,4 @@ printer_coords:
     x: 1887.015173546095
     y: -5.289912223815918e-06
 printer_plate_z: 340.0
-printer_tag_ids:
-  1: 1
-  2: 2
-  3: 3
-  4: 4
-  5: 5
-  6: 6
-  7: 7
-  8: 8
-  9: 9
-  10: 10
-  11: 11
-  12: 12
+tolerance: 0.5

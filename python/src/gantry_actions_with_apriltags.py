@@ -1,5 +1,6 @@
 import gcode_gen as gg
 from config import config
+import apriltag_python.apriltag_locator as al
 
 
 def read_printer_coords(printer_number: int) -> dict:

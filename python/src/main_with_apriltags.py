@@ -6,7 +6,7 @@ import queue_jobs as qj
 import mqtt_manager as mq
 import mqtt_send_types as mt
 import json_msg_parser as js
-import gantry_actions as ga
+import gantry_actions_with_apriltags as ga
 
 FLOW_CS_EMPTY = True
 FLOW_CS_OK = False
@@ -249,6 +249,14 @@ def main():
     else:
         print("Threads not created correctly")
         exit(3)
+
+    # apriltags
+    if not ga.al.load_config("apriltag_python/config.yaml"):
+        exit(4)
+
+    if not ga.al.init_capture_apriltags():
+        exit(4)
+
 
     print("Initialization Done")
 

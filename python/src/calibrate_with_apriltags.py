@@ -1,11 +1,18 @@
 import linuxcnc_interface as li
 import gcode_gen as gg
 from config import config, update_config_file, update_config_variable
+import apriltag_python.apriltag_locator as al
 
 def main():
     print("----------------------------")
     print("Calibration Protocol Started")
     print("----------------------------\n")
+
+    if not (al.load_config("apriltag_python/config.yaml")):
+        exit(1)
+    
+    if not (al.init_capture_apriltags()):
+        exit(1)
 
     li.set_state_active()
     if not li.home_all_axes():
@@ -84,6 +91,34 @@ def main():
                     print( "   All Other Plates Should be Aligned with this Marking\n")
                     input("")
 
+                    print("Auto-adjusting Manual Coordinate")
+                    while True:
+                        if not (al.capture_image()):
+                            continue
+
+                        tags = al.detect_apriltags()
+
+                        if tags == None:
+                            print("Could not Find Tag, Jog until Found")
+                            continue
+
+                        pose = al.get_pose(tags)
+
+                        pose[0] -= config["camera_transform_coeffs"]["x"]
+                        pose[1] -= config["camera_transform_coeffs"]["y"]
+
+                        if (abs(pose[0] + pose[1]) > config["tolerance"]):
+                            diffx = -pose[0]
+                            diffy = -pose[1]
+
+                            print(f"Adjustment: x{diffx}, y{diffy}")
+                            li.send_mdi_line(f"G01 X{diffx} Y{diffy} F500")
+                            continue
+
+                        print("Plate Successfully Centered")
+
+                        break
+
                     print("Simulating Plate Grab...")
                     li.send_mdi_line(f"G01 Z0 F3000")
                     li.send_mdi_line(f"G91")
@@ -129,7 +164,7 @@ def main():
                     print(f"Position Value for Printer {i} Written")
                     print( "-------------------------------------\n")
 
-                print("Simulating Plate Grab...")
+                print("Grabbing Plate for DPS Calibration")
                 li.send_mdi_line(f"G01 Z0 F3000")
                 li.send_mdi_line(f"G91")
                 li.send_mdi_line(f"G01 U{config['gripper_up']}")
@@ -314,11 +349,6 @@ def main():
                 if not li.home_all_axes():
                     print("Homing Failed, Retry")
                     exit(1)
-
-                print("Restart?")
-                if (input("y/n: ")) == 'y':
-                    block = 0
-                    continue
 
                 print("Finished Calibration")
                 break
