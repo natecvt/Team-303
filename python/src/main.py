@@ -92,16 +92,10 @@ def main_loop():
         msg = mq.recieved_q.get()
         print(msg)
 
-        if (js.get_event(msg) == None):
-            print("Bad message")
-            continue
 
-        # get event and publish ack
-        if (js.get_event(msg) == js.EVENT_PC):
-
-            mq.ak_msg.fill_data(message=f"Print Complete Received ID {js.printer_get_number(msg)}",
-                                status=mt.STATUS[0])
-            mq.publish_message(mq.ak_msg, mq.TOPIC_A)
+        mq.ak_msg.fill_data(message=f"Print Complete Received ID {js.printer_get_number(msg)}",
+                            status=mt.STATUS[0])
+        mq.publish_message(mq.ak_msg, mq.TOPIC_A)
 
         num = js.printer_get_number(msg)
 

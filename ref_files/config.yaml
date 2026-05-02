@@ -19,10 +19,10 @@ clean_plate_axis: v
 clean_plate_distance: 215.0
 cs_amount: 5
 cs_coords:
-  x: 2351.735786554431
-  y: 763.6835945561796
+  x: 2353.007433437003
+  y: 755.7050812168577
 cs_grab_y: -30.0
-cs_grab_z: 349.13215683121234
+cs_grab_z: 350.9547763247974
 cs_tag_id: 0
 door_close_delta:
   x: 325.0
@@ -37,9 +37,9 @@ door_open_delta:
 door_radius: 310.0
 door_to_plate_delta:
   x: -50.0
-  y: 70.0
+  y: 68.0
   z: 0.0
-door_z: 392.0
+door_z: 395.0
 ds_amount_per: 4
 ds_angle: -13.0
 ds_cols: 6
@@ -74,17 +74,17 @@ ds_cols_tag_ids:
   69: 6
   70: 7
 ds_coords:
-  x: 399.99999518337466
-  y: 775.0000041842844
-ds_dx: 277.9165538343741
-ds_dy: -82.0
+  x: 377.86305188340134
+  y: 778.1307565171763
+ds_dx: 277.53408903693594
+ds_dy: -81.22026800002561
 ds_release_dy: -10.0
 ds_release_z: 375.0
 ds_rows: 4
 feed_rate: 3000.0
 gripper_axis: u
-gripper_down: -11.1
-gripper_up: 9.0
+gripper_down: -15.1
+gripper_up: 13.0
 heartbeat_duration: 30.0
 linuxcnc_folder: linuxCNC/team303_machine.ini
 linuxcnc_timeout: 240.0
@@ -100,10 +100,43 @@ mqtt_keepalive: 120
 mqtt_received_topic: test/topic
 mqtt_storage_topic: test/storage
 printer_coords:
+  1:
+    x: 486.3253384055591
+    y: 37.88888240607261
   2:
-    x: 1887.015173546095
-    y: -5.289912223815918e-06
-printer_plate_z: 340.0
+    x: 889.6809992613792
+    y: 37.88888240607261
+  3:
+    x: 1286.919850595629
+    y: 37.88888240607261
+  4:
+    x: 1680.5668945970137
+    y: 37.280391644786476
+  5:
+    x: 2071.2458359310926
+    y: 37.674563593687438
+  6:
+    x: 50.000003247753085
+    y: 37.99999674953837
+  7:
+    x: 498.4029867394642
+    y: 1136.4196350741674
+  8:
+    x: 902.076830739943
+    y: 1136.4196350741674
+  9:
+    x: 1288.0845539521852
+    y: 1140.1139289103116
+  10:
+    x: 1692.6048930763568
+    y: 1136.4196350741674
+  11:
+    x: 2085.8891895978445
+    y: 1136.4196350741674
+  12:
+    x: 2482.735523406908
+    y: 1136.4196350741674
+printer_plate_z: 330.0
 printer_tag_ids:
   1: 1
   2: 2

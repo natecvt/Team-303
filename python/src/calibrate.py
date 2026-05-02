@@ -119,7 +119,7 @@ def main():
                 print("Press ENTER when Plate is in CPD\n")
                 input("")
 
-                li.send_mdi_line(f"G01 V{config['clean_plate_distance']} F100")
+                li.send_mdi_line(f"G01 V{config['clean_plate_distance']} F1000")
 
                 li.c.mode(li.linuxcnc.MODE_MANUAL)
                 li.c.wait_complete()
@@ -135,6 +135,8 @@ def main():
                 config["cs_coords"] = {"x": coords["x"], "y": coords["y"]}
                 config["cs_grab_z"] = coords["z"]
 
+                li.send_mdi_line(f"G01 Z0 F1000")
+
                 if not li.home_all_axes():
                     print("Homing Failed, Retry")
                     exit(1)
@@ -146,7 +148,7 @@ def main():
                 print("Skip Calibration for DPS?")
                 if (input("y/n: ") == 'y'):
                     print("Skipping DPS Calibration")
-                    block += 1
+                    block += 3
                     continue
 
                 try:

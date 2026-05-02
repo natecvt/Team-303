@@ -6,7 +6,7 @@ import json
 
 # timings in seconds
 MIN_INTERVAL = 0.0
-MAX_INTERVAL = 3600.0
+MAX_INTERVAL = 360.0
 
 with open("ref_files/config.yaml") as file: 
     config = yaml.safe_load(file)
@@ -18,9 +18,15 @@ TOPIC_C: str = config["mqtt_complete_topic"]
 TOPIC_H: str = config["mqtt_heartbeat_topic"]
 MQTT_IP: str = config["mqtt_broker_ip"]
 
-with open("msgs/print_complete.json") as file: 
-    msg = json.load(file)
-    msg = json.dumps(msg)
+with open("msgs/print_complete1.json") as file: 
+    msg1 = json.load(file)
+    msg1 = json.dumps(msg1)
+
+with open("msgs/print_complete2.json") as file: 
+    msg2 = json.load(file)
+    msg2 = json.dumps(msg2)
+
+trig = False
 
 while True:
 
@@ -30,7 +36,12 @@ while True:
 
     time.sleep(sleep_interval)
 
-    pub.single(topic=TOPIC_R, payload=msg, hostname=MQTT_IP)
+    if trig:
+        pub.single(topic=TOPIC_R, payload=msg1, hostname=MQTT_IP)
+        trig = False
+    else:
+        pub.single(topic=TOPIC_R, payload=msg2, hostname=MQTT_IP)
+        trig = True
 
 
 
