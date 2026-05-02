@@ -10,12 +10,9 @@ except:
     print("linuxcnc not found, don't run this on other machines\n")
     sys.exit(1)
 
-LCNC_PATH: str = config["linuxcnc_folder"]
-LCNC_MOTION_TIMEOUT: float = config["linuxcnc_timeout"]
-
 ZERO_TOLERANCE: float = 1.0 # mm
 
-lcnc_process = subprocess.Popen(["linuxcnc", LCNC_PATH])
+lcnc_process = subprocess.Popen(["linuxcnc", config["linuxcnc_folder"]])
 time.sleep(10.0) # sleep for a bit to give linuxcnc ample time to start
 
 s = linuxcnc.stat()
@@ -114,13 +111,13 @@ def home_all_axes() -> bool:
     c.home(-1) # home all axes by INI configuration
 
     count = 0
-    while (not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count()))) and count < LCNC_MOTION_TIMEOUT * 10:
+    while (not all(s.joint[i]['homed'] for i in range(s.axis_mask.bit_count()))) and count < config["linuxcnc_timeout"] * 10:
         s.poll()
         time.sleep(0.1)
         count += 1
 
-    if (count >= LCNC_MOTION_TIMEOUT * 10):
-        print(f"Homing timed out in {LCNC_MOTION_TIMEOUT/60} minutes")
+    if (count >= config["linuxcnc_timeout"] * 10):
+        print(f"Homing timed out in {config["linuxcnc_timeout"]/60} minutes")
 
         #TODO: check stat for more specific errors
 
@@ -198,7 +195,7 @@ def send_mdi_line(code: str) -> int:
         c.mode(linuxcnc.MODE_MDI)
         c.wait_complete()
         c.mdi(code) # send mdi commands
-        crc = c.wait_complete(LCNC_MOTION_TIMEOUT)
+        crc = c.wait_complete(config["linuxcnc_timeout"])
         if (crc == -1 or crc == linuxcnc.RCS_ERROR):
             rc = 1
             print("MDI line failed" + code)

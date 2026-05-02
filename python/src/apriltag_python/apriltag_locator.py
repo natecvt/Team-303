@@ -4,28 +4,37 @@ from os import PathLike
 import yaml
 from dt_apriltags import Detector
 
-def load_config(path: str | PathLike):
+params: dict
+cap: cv2.VideoCapture
+detector: Detector
+image: cv2.typing.MatLike
+
+def load_config(path: str | PathLike) -> bool:
 
     if not path.endswith((".yaml", ".yml")):
         print("Path does not specify a config")
-        return None
+        return False
 
     with open(path, "r") as stream:
+        global params
         params = yaml.safe_load(stream)
 
-        if params is None:
+        if params == None:
             print("Invalid file syntax or data")
-            return None
+            return False
 
-        return params
+        return True
 
-def init_capture_apriltags(params) -> list[cv2.VideoCapture, Detector]:
+def init_capture_apriltags() -> bool:
 
+    global cap
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
         print("Camera not found")
-        exit(1)
+        return False
+    
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
 
     param_list = [params["family"], 
                   params["nthreads"], 
@@ -39,8 +48,9 @@ def init_capture_apriltags(params) -> list[cv2.VideoCapture, Detector]:
 
     if not pcheck:
         print("Apriltag detector not initialized")
-        exit(2)
+        return False
     
+    global detector
     detector = Detector(families=param_list[0],
                         nthreads=param_list[1],
                         quad_decimate=param_list[2],
@@ -49,24 +59,29 @@ def init_capture_apriltags(params) -> list[cv2.VideoCapture, Detector]:
                         decode_sharpening=param_list[5],
                         debug=param_list[6])
     
-    if detector is None:
+    if detector == None:
         print("Detector failed to initialize")
-        exit(3)
+        return False
 
     print("Apriltag detector initialized")
 
-    return [cap, detector]
+    return True
 
-def capture_image(cap: cv2.VideoCapture) -> cv2.typing.MatLike | None:
+def capture_image(cap: cv2.VideoCapture) -> bool:
+
+    #flush the whole buffer, causes more latency
+    cap.read()
+    cap.read()
     ret, frame = cap.read()
     if not ret:
         print("Image failed to capture")
-        return None
+        return False
     
+    global image
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    return image
+    return True
     
-def detect_apriltags(image: cv2.typing.MatLike, detector: Detector, params) -> list | None:
+def detect_apriltags() -> list | None:
     cam_vals = (params["intrinsics"]["fx"],
                 params["intrinsics"]["fy"],
                 params["intrinsics"]["cx"],
@@ -74,14 +89,14 @@ def detect_apriltags(image: cv2.typing.MatLike, detector: Detector, params) -> l
     
     tags = detector.detect(image, True, cam_vals, params["tag_size"])
 
-    if (tags is None or len(tags) == 0):
+    if (tags == None or len(tags) == 0):
         print("No tags detected")
         return None
 
     return tags
 
 def get_pose(tags: list) -> list | None:
-    if (tags is None):
+    if (tags == None):
         print("Tags empty, returning")
         return None
 
@@ -100,11 +115,11 @@ def get_pose(tags: list) -> list | None:
     return best.pose_t
 
 def main():
-    params = load_config("config.yaml")
-    cap, det = init_capture_apriltags(params)
-    img = capture_image(cap)
-    frame = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    tags = detect_apriltags(img, det, params)
+    load_config("config.yaml")
+    init_capture_apriltags()
+    capture_image()
+    frame = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    tags = detect_apriltags()
     for tag in tags:
         p1 = (int(tag.corners[0][0]), int(tag.corners[0][1]))
         p2 = (int(tag.corners[1][0]), int(tag.corners[1][1]))

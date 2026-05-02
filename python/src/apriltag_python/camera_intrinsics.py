@@ -32,6 +32,8 @@ def calibrate(path: str | PathLike):
         print("Camera not found")
         exit(1)
 
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
+
     print("Camera registered, please move calibration board within camera view")
     cv2.waitKey(2000)
 
